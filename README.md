@@ -44,6 +44,31 @@ git add .
 git commit -m "Add Chart.js rendering for historical performance trends"
 ```
 
+
+Use **Conventional Commits**, They make commit history cleaner and help with changelogs and versioning.
+
+```bash
+| Prefix      | Meaning                                      | Example                                      |
+| ----------- | -------------------------------------------- | -------------------------------------------- |
+| `feat:`     | New feature                                  | `feat: add <example>`                        |
+| `fix:`      | Bug fix                                      | `fix: resolve <example> issue`               |
+| `docs:`     | Documentation only                           | `docs: update README setup instructions`     |
+| `style:`    | Formatting, whitespace, no code changes      | `style: format code with black`              |
+| `refactor:` | Code restructuring without changing behavior | `refactor: simplify <example> logic`         |
+| `perf:`     | Performance improvement                      | `perf: optimize <example>`                   |
+| `test:`     | Add or modify tests                          | `test: add unit tests for <example>`         |
+| `build:`    | Build system or dependencies                 | `build: upgrade <example> dependency`        |
+| `ci:`       | CI/CD changes                                | `ci: add GitHub Actions workflow`            |
+| `chore:`    | Misc maintenance                             | `chore: update gitignore`                    |
+| `revert:`   | Revert a previous commit                     | `revert: revert <example> changes`           |
+| `init:`     | Initial project setup                        | `init: create aegis project structure`       |
+| `merge:`    | Branch merge                                 | `merge: combine feature branch into main`    |
+| `security:` | Security-related fix                         | `security: sanitize user input handling`     |
+| `hotfix:`   | Urgent production fix                        | `hotfix: fix application crash on startup`   |
+| `release:`  | Release version preparation                  | `release: prepare v1.0.0 for deployment`     |
+```
+
+
 3. Push and Open a Pull Request (PR)
 ```bash
 git push origin feature/your-feature-name
