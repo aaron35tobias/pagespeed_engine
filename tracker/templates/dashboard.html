@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PageSpeed Audit Engine</title>
+</head>
+<body style="background-color: #121212; color: #00FF00; font-family: monospace; padding: 2rem;">
+    <h2>Run PageSpeed Audit</h2>
+    
+    {% if messages %}
+        <ul style="color: #ffcc00;">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="POST" action="{% url 'run_audit' %}">
+        {% csrf_token %}
+        <div style="margin-bottom: 1rem;">
+            <label for="url">Target URL:</label><br>
+            <input type="url" id="url" name="url" placeholder="https://example.com" required style="width: 300px; padding: 5px;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label>Device Strategy:</label><br>
+            <input type="radio" id="desktop" name="strategy" value="desktop" checked>
+            <label for="desktop">Desktop</label>
+            <input type="radio" id="mobile" name="strategy" value="mobile">
+            <label for="mobile">Mobile</label>
+        </div>
+        
+        <button type="submit" style="padding: 10px 20px; background-color: #00FF00; color: #121212; font-weight: bold;">Analyze & Store Data</button>
+    </form>
+</body>
+</html>
