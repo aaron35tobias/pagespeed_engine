@@ -25,7 +25,7 @@ cd pagespeed_engine
 - Follow cmds from cmds.sql to view the table and data
 - Start server: `python manage.py runserver`
 - To check whether server is running or not go to web browser and enter http://127.0.0.1:8000/ as URL.
-
+- To sync DB with our models.py `python manage.py makemigrations` and `python manage.py migrate`
 
 
 ## Git Workflow & Contribution Guide
