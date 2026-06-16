@@ -102,21 +102,9 @@ If you're currently on `main`
 
 ```bash
 git checkout main
-git pull origin main
-```
-
-This switches to `main` and downloads + merges the latest changes from the remote.
-
-Then switch back to your feature branch:
-
-```bash
-git checkout <user>/<url-fix>
-```
-
-Merge `main` into it:
-
-```bash
-git rebase main
+git pull origin main #This switches to `main` and downloads + merges the latest changes from the remote
+git checkout <user>/<url-fix> #Then switch back to your feature branch
+git rebase main #Merge `main` into it:
 ```
 
 Done, now to check what branch you're on [OPTIONAL]
@@ -135,37 +123,18 @@ git status
 ```
 
 #### 6. if you want to stash changes which you are working on and then pull requests
-If you just want to sync main first:
-```bash
-git stash
-```
 
-Now your working directory is clean.
-Then:
 ```bash
-git pull origin main
-```
-or:
-```bash
-git rebase main
-```
-Then bring your changes back:
-```bash
-git stash pop
+git stash #If you just want to sync main first
+git pull origin main #Now your working directory is clean.
+git rebase main # or 
+git stash pop # Then bring your changes back
 ```
 #### 7. If you don't want the changes which you are working on and want to overwrite with main
-This deletes current changes
 ```bash
-git reset --hard
-```
-If you also want to remove untracked files (like new migration files):
-```bash
-git clean -fd
-```
-
-Now you can overwrite
-```bash
-git pull origin main
+git reset --hard #This deletes current changes
+git clean -fd #If you also want to remove untracked files (like new migration files)
+git pull origin main # Now you can overwrite
 ```
 #### 8. Review and Merge [ONLY FOR PRIYANSHU]
 ```bash
