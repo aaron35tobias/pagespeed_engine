@@ -1,8 +1,9 @@
 # tracker/urls.py
 
 from django.urls import path
-from . import views 
+from . import views
 
 urlpatterns = [
     path('', views.run_audit_view, name='run_audit'),
+    path('api/history/<int:website_id>/', views.api_website_history, name='api_history'),
 ]

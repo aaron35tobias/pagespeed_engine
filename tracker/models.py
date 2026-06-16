@@ -40,5 +40,16 @@ class PageSpeedReport(models.Model):
     error_message = models.TextField(blank=True)
     fetched_at = models.DateTimeField(auto_now_add=True)
 
+
+class AlertLog(models.Model):
+    website = models.ForeignKey(Website, on_delete=models.CASCADE, related_name='alerts')
+    report = models.ForeignKey(PageSpeedReport, on_delete=models.SET_NULL, null=True)
+    alert_type = models.CharField(max_length=50)
+    score_at_alert = models.PositiveSmallIntegerField(null=True, blank=True)
+    sent_to = models.EmailField()
+    subject = models.CharField(max_length=200)
+    delivered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
-        return f"{self.website.url} - {self.strategy} - {self.fetched_at.strftime('%Y-%m-%d %H:%M')}"
+        return f"{self.alert_type} for {self.website.url} on {self.created_at.strftime('%Y-%m-%d')}"
