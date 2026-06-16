@@ -33,15 +33,20 @@ To maintain a stable codebase, we use a standard Feature Branch workflow. Do not
 
 1. Create a Feature Branch
 ```bash
+# 1. Go back to the main branch
 git checkout main
+
+# 2. Pull main 
 git pull origin main
-git checkout -b feature/your-feature-name
+
+# 3. Create a fresh branch for next task
+git checkout -b <user>/<new-task-name>
 ```
 
 2. Commit your changes
 ```bash
 git add .
-git commit -m "Add Chart.js rendering for historical performance trends"
+git commit -m "style: Add Chart.js rendering for historical performance trends"
 ```
 
 
@@ -71,26 +76,66 @@ Use **Conventional Commits**, They make commit history cleaner and help with cha
 
 3. Push and Open a Pull Request (PR)
 ```bash
-git push origin feature/your-feature-name
+git push origin <feature>/<your-feature-name>
 ```
 Open: `https://github.com/prxcode/pagespeed_engine` and click "SEND PR"
 
-4. Once you all are done with sending PR
+4. Once you all are done with sending PR and your PR is merged by prxcode
 ```bash
 # 1. Go back to the main branch
 git checkout main
 
-# 2. Pull your merged PR changes so his local machine is up to date
+# 2. Pull main latest code 
 git pull origin main
 
 # 3. Delete the old local branch
-git branch -d aaron/fixing-url-input
+git branch -d <user>/<fixing-url-input>
 
-# 4. Create a fresh branch for his next task
-git checkout -b aaron/new-task-name
+# 4. Create a fresh branch for next task
+git checkout -b <user>/<new-task-name>
 ```
 
-4. Review and Merge [ONLY FOR PRIYANSHU]
+5. To pull changes from main branch
+To pull the latest updates from the remote `main` branch into your local repository:
+
+If you're currently on `main`
+
+```bash
+git checkout main
+git pull origin main
+```
+
+This switches to `main` and downloads + merges the latest changes from the remote.
+
+Then switch back to your feature branch:
+
+```bash
+git checkout <user>/<url-fix>
+```
+
+Merge `main` into it:
+
+```bash
+git rebase main
+```
+
+Done, now to check what branch you're on [OPTIONAL]
+
+```bash
+git branch
+```
+
+The current branch will have a `*` next to it.
+
+To see if you're behind the remote [OPTIONAL]
+
+```bash
+git fetch origin
+git status
+```
+
+
+6. Review and Merge [ONLY FOR PRIYANSHU]
 ```bash
 git checkout main
 git pull origin main
