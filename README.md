@@ -73,6 +73,22 @@ Use **Conventional Commits**, They make commit history cleaner and help with cha
 ```bash
 git push origin feature/your-feature-name
 ```
+Open: `https://github.com/prxcode/pagespeed_engine` and click "SEND PR"
+
+4. Once you all are done with sending PR
+```bash
+# 1. Go back to the main branch
+git checkout main
+
+# 2. Pull your merged PR changes so his local machine is up to date
+git pull origin main
+
+# 3. Delete the old local branch
+git branch -d aaron/fixing-url-input
+
+# 4. Create a fresh branch for his next task
+git checkout -b aaron/new-task-name
+```
 
 4. Review and Merge [ONLY FOR PRIYANSHU]
 ```bash
