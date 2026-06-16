@@ -6,7 +6,10 @@ from .models import Website, PageSpeedReport
 
 def run_audit_view(request):
     if request.method == 'POST':
-        target_url = request.POST.get('url')
+        target_url = request.POST.get('url', '').strip()
+        if target_url and not target_url.startswith(('http://', 'https://')):
+            target_url = 'https://' + target_url
+            
         strategy = request.POST.get('strategy', 'desktop')
         
         # 1. Get or Create the Website parent record
