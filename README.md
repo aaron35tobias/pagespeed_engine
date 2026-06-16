@@ -31,7 +31,7 @@ cd pagespeed_engine
 ## Git Workflow & Contribution Guide
 To maintain a stable codebase, we use a standard Feature Branch workflow. Do not push directly to the main branch.
 
-1. Create a Feature Branch
+#### 1. Create a Feature Branch
 ```bash
 # 1. Go back to the main branch
 git checkout main
@@ -43,7 +43,7 @@ git pull origin main
 git checkout -b <user>/<new-task-name>
 ```
 
-2. Commit your changes
+#### 2. Commit your changes
 ```bash
 git add .
 git commit -m "style: Add Chart.js rendering for historical performance trends"
@@ -74,13 +74,13 @@ Use **Conventional Commits**, They make commit history cleaner and help with cha
 ```
 
 
-3. Push and Open a Pull Request (PR)
+#### 3. Push and Open a Pull Request (PR)
 ```bash
 git push origin <feature>/<your-feature-name>
 ```
 Open: `https://github.com/prxcode/pagespeed_engine` and click "SEND PR"
 
-4. Once you all are done with sending PR and your PR is merged by prxcode
+#### 4. Once you all are done with sending PR and your PR is merged by prxcode
 ```bash
 # 1. Go back to the main branch
 git checkout main
@@ -95,7 +95,7 @@ git branch -d <user>/<fixing-url-input>
 git checkout -b <user>/<new-task-name>
 ```
 
-5. To pull changes from main branch
+#### 5. To pull changes from main branch
 To pull the latest updates from the remote `main` branch into your local repository:
 
 If you're currently on `main`
@@ -134,8 +134,40 @@ git fetch origin
 git status
 ```
 
+#### 6. if you want to stash changes which you are working on and then pull requests
+If you just want to sync main first:
+```bash
+git stash
+```
 
-6. Review and Merge [ONLY FOR PRIYANSHU]
+Now your working directory is clean.
+Then:
+```bash
+git pull origin main
+```
+or:
+```bash
+git rebase main
+```
+Then bring your changes back:
+```bash
+git stash pop
+```
+#### 7. If you don't want the changes which you are working on and want to overwrite with main
+This deletes current changes
+```bash
+git reset --hard
+```
+If you also want to remove untracked files (like new migration files):
+```bash
+git clean -fd
+```
+
+Now you can overwrite
+```bash
+git pull origin main
+```
+#### 8. Review and Merge [ONLY FOR PRIYANSHU]
 ```bash
 git checkout main
 git pull origin main
