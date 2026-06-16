@@ -19,13 +19,21 @@ class PageSpeedReport(models.Model):
     best_practices_score = models.PositiveSmallIntegerField(null=True, blank=True)
     seo_score = models.PositiveSmallIntegerField(null=True, blank=True)
     
-    # Core Web Vitals
+    # LAB DATA (Simulated Lighthouse Metrics)
     first_contentful_paint = models.FloatField(null=True, blank=True) # Seconds
     largest_contentful_paint = models.FloatField(null=True, blank=True) # Seconds
     total_blocking_time = models.FloatField(null=True, blank=True) # ms
     cumulative_layout_shift = models.FloatField(null=True, blank=True) # Unitless
     speed_index = models.FloatField(null=True, blank=True) # Seconds
     interaction_to_next_paint = models.FloatField(null=True, blank=True) # ms
+    time_to_first_byte = models.FloatField(null=True, blank=True) # Seconds
+
+    # FIELD DATA (Real-World CrUX 28-day averages)
+    field_fcp = models.FloatField(null=True, blank=True) # Seconds
+    field_lcp = models.FloatField(null=True, blank=True) # Seconds
+    field_cls = models.FloatField(null=True, blank=True) # Unitless
+    field_inp = models.FloatField(null=True, blank=True) # ms
+    field_ttfb = models.FloatField(null=True, blank=True) # Seconds
     
     # Audit Meta
     status = models.CharField(max_length=20, default='success') # 'success' or 'failed'
