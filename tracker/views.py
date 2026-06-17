@@ -5,9 +5,8 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from django.http import JsonResponse
-from django.core.mail import send_mail
-from django.core.exceptions import ValidationError
-from django.utils import timezone
+from django.core.mail import send_mail 
+from django.utils import timezone 
 from .models import Website, PageSpeedReport, AlertLog 
 
 
@@ -169,6 +168,7 @@ def run_audit_view(request):
     context['websites'] = Website.objects.all()
     
     # If a user is viewing a specific site (e.g., ?url=https://example.com)
+    # If a user is viewing a specific site (e.g., ?url=https://example.com)
     selected_url = request.GET.get('url')
     # Use the strategy requested by the UI, default to desktop
     view_strategy = request.GET.get('strategy', 'desktop')
@@ -198,48 +198,6 @@ def run_audit_view(request):
 
 
 
-# JSON API ENDPOINT FOR THE FRONTEND "RECENTLY VISITED" LIST
-def api_recent_websites(request):
-    """
-    Returns the list of websites from MySQL, newest-audited first.
-    Optional date range via query params: ?start=YYYY-MM-DD&end=YYYY-MM-DD
-    Each website appears once, using its most recent successful audit in range.
-    """
-    start = request.GET.get('start')  # e.g. "2026-06-01" (optional)
-    end = request.GET.get('end')      # e.g. "2026-06-17" (optional)
-
-    # Start with every successful audit
-    reports = PageSpeedReport.objects.filter(status='success')
-
-    # Narrow to the requested date range if the frontend sent one
-    try:
-        if start:
-            reports = reports.filter(fetched_at__date__gte=start)
-        if end:
-            reports = reports.filter(fetched_at__date__lte=end)
-    except (ValueError, ValidationError):
-        return JsonResponse({'error': 'Dates must look like YYYY-MM-DD'}, status=400)
-
-    # Walk newest -> oldest; the first time we see a website is its latest audit.
-    # select_related pulls the Website in the same query (avoids extra DB hits).
-    seen = {}
-    for report in reports.select_related('website').order_by('-fetched_at'):
-        wid = report.website_id
-        if wid not in seen:
-            seen[wid] = {
-                'id': report.website.id,
-                'url': report.website.url,
-                'name': report.website.name or report.website.url,
-                'last_visited': report.fetched_at.strftime('%b %d, %Y %H:%M'),
-                'latest_score': report.performance_score,
-            }
-
-    return JsonResponse({
-        'count': len(seen),
-        'websites': list(seen.values()),  # already in newest-first order
-    })
-
-
 # JSON API ENDPOINT FOR CHART.JS
 def api_website_history(request, website_id):
     """
@@ -265,7 +223,9 @@ def api_website_history(request, website_id):
         }
         
         for report in reports:
-            data['labels'].append(report.fetched_at.strftime('%b %d, %H:%M'))
+            # Prefix the label with PC or Mob to indicate strategy on the graph lines
+            label_prefix = "PC" if report.strategy == "desktop" else "Mob"
+            data['labels'].append(f"{label_prefix} - {report.fetched_at.strftime('%b %d, %H:%M')}")
             data['scores'].append(report.performance_score)
             
         return JsonResponse(data)
