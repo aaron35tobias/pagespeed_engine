@@ -23,23 +23,13 @@
                 </div>
                 <span class="font-bold tracking-tight text-xl text-gray-900">PageSpeed</span>
             </div>
-            <div class="text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-2.5 py-1 rounded">
-                Live Field Pipeline
-            </div>
+            
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-8">
 
-        {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-            <div class="p-4 rounded-xl border flex items-center space-x-3 {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %}">
-                <span class="text-sm font-medium">{{ message }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
+        
 
         {% if error %}
         <div class="mb-6 p-4 rounded-xl border bg-amber-50 border-amber-200 text-amber-800 flex items-center">
@@ -48,47 +38,53 @@
         {% endif %}
 
         <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="mb-6 text-center w-full">
+        <div class="bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-100 inline-block shadow-sm">
+            <span class="text-sm text-gray-500 font-semibold tracking-wide uppercase">
+                Captured on System Time Matrix:
+                <span class="text-blue-600 font-bold ml-1">
+                    {% if latest_report.updated_at %}
+                        {{ latest_report.updated_at|date:"m/d/Y h:i:s A" }}
+                    {% elif latest_report.created_at %}
+                        {{ latest_report.created_at|date:"m/d/Y h:i:s A" }}
+                    {% elif latest_report.timestamp %}
+                        {{ latest_report.timestamp }}
+                    {% else %}
+                        {% now "m/d/Y h:i:s A" %}
+                    {% endif %}
+                </span>
+            </span>
+        </div>
+    </div>
             <form method="POST" action="{% url 'run_audit' %}" id="auditForm" class="space-y-6">
                 {% csrf_token %}
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <div class="lg:col-span-2">
+                
+                <div class="flex flex-col sm:flex-row items-end gap-4 w-full">
+                    <div class="flex-1 w-full">
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Analyze Target URL</label>
                         <div class="relative">
                             <input type="text" name="url" required placeholder="example.com" value="{% if selected_website %}{{ selected_website.url }}{% endif %}"
-                                class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                                class="w-full bg-gray-50 border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all h-12 font-medium">
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Device Strategy Mode</label>
-                        <div class="bg-gray-100 p-1 rounded-xl flex space-x-1">
-                            <label id="desktopLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2">
-                                <input type="radio" name="strategy" value="desktop" checked class="hidden" onclick="toggleStrategy('desktop')">
-                                <span>🖥️ Desktop</span>
-                            </label>
-                            <label id="mobileLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2">
-                                <input type="radio" name="strategy" value="mobile" class="hidden" onclick="toggleStrategy('mobile')">
-                                <span>📱 Mobile</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t border-gray-100 pt-6 gap-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs text-gray-400">Database History Quick-Switch:</span>
-                        <select onchange="location = this.value;" class="bg-gray-50 border border-gray-200 text-xs rounded-lg p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600 font-medium">
-                            <option value="">-- Select Monitored Domain --</option>
-                            {% for site in websites %}
-                            <option value="?url={{ site.url }}" {% if selected_website.url == site.url %}selected{% endif %}>{{ site.url }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.98]">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 rounded-xl transition-all shadow-sm hover:shadow active:scale-[0.98] h-12 whitespace-nowrap w-full sm:w-auto flex items-center justify-center min-w-[180px]">
                         Run Performance Audit
                     </button>
                 </div>
+
+                <div class="flex flex-col items-center justify-center w-full border-t border-gray-50 pt-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 text-center">Device Strategy Mode</label>
+                    <div class="bg-gray-100 p-1 rounded-xl flex space-x-1 max-w-sm w-full">
+                        <button type="button" onclick="filterStrategy('desktop')" id="desktopLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2">
+                            <span>🖥️ Desktop</span>
+                        </button>
+                        <button type="button" onclick="filterStrategy('mobile')" id="mobileLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2">
+                            <span>📱 Mobile</span>
+                        </button>
+                    </div>
+                </div>
+
+                
             </form>
         </section>
 
@@ -132,6 +128,7 @@
                                 {{ latest_report.performance_score }}
                             </div>
                         </div>
+                        
                         <span class="text-xs font-medium text-gray-700 mt-3">Performance</span>
                     </div>
 
@@ -170,7 +167,7 @@
                                     stroke="currentColor" 
                                     fill="{% if latest_report.best_practices_score >= 90 %}#0cce6b1a{% elif latest_report.best_practices_score >= 50 %}#ffa4001a{% else %}#ff4e421a{% endif %}" 
                                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
+                            </svg>
                             <div class="absolute inset-0 flex items-center justify-center text-xl font-mono font-medium
                                 {% if latest_report.best_practices_score >= 90 %}text-[#218249]{% elif latest_report.best_practices_score >= 50 %}text-[#c26100]{% else %}text-[#cc2511]{% endif %}">
                                 {{ latest_report.best_practices_score }}
@@ -203,62 +200,72 @@
 
                 </div>
 
-                <div class="text-center border-t border-gray-100 pt-4 mt-2">
-                    <span class="text-[11px] text-gray-400 font-medium">Captured on System Time Matrix: <b class="text-gray-500 font-semibold" id="executionClock"></b></span>
+                <div class="flex flex-wrap justify-center items-center gap-6 text-[11px] font-medium text-gray-500 border-t border-gray-100 pt-5 mt-4 w-full">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-[#ff4e42] rounded-full shadow-sm"></span>
+                        <span>Poor (0 - 49)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-[#ffa400] rounded-full shadow-sm"></span>
+                        <span>Needs Improvement (50 - 89)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 bg-[#0cce6b] rounded-full shadow-sm"></span>
+                        <span>Good (90 - 100)</span>
+                    </div>
                 </div>
+
+                
             </section>
 
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
-                <div class="mb-8 border-b border-gray-100 pb-4">
-                    <h3 class="text-base font-bold text-gray-900">Discover What Your Real Users Are Experiencing</h3>
-                    <p class="text-xs text-gray-400 mt-0.5">Core Web Vitals dataset extracted dynamically over a trailing 28-day compilation window via the Google CrUX pipeline.</p>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Discover What Your Real Users Are Experiencing</h2>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-semibold text-gray-700">Largest Contentful Paint (LCP)</span>
+                        <span id="metric-lcp" class="font-mono font-bold text-gray-900">--</span>
+                    </div>
+                    <div class="relative w-full h-3 bg-gradient-to-r from-[#0cce6b] 0% from-[#0cce6b] 60% via-[#ffa400] 60% via-[#ffa400] 85% to-[#ff4e42] 85% to-[#ff4e42] 100% rounded-full">
+                        <div id="pin-lcp" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow hidden"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
+                        <span>Good (≤ 2.5s)</span>
+                        <span class="text-center">Needs Improvement (2.5s - 4.0s)</span>
+                        <span>Poor (> 4.0s)</span>
+                    </div>
                 </div>
 
                 <div class="mb-6">
-    <div class="flex justify-between items-center mb-1">
-        <span class="text-sm font-semibold text-gray-700">Largest Contentful Paint (LCP)</span>
-        <span id="metric-lcp" class="font-mono font-bold text-gray-900">--</span>
-    </div>
-    <div class="relative w-full h-3 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full">
-        <div id="pin-lcp" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow" style="left: 0%; display: none;"></div>
-    </div>
-    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
-        <span>Good (≤ 2.5s)</span>
-        <span>Needs Improvement (2.5s - 4.0s)</span>
-        <span>Poor (> 4.0s)</span>
-    </div>
-</div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-semibold text-gray-700">Interaction to Next Paint (INP)</span>
+                        <span id="metric-inp" class="font-mono font-bold text-gray-900">--</span>
+                    </div>
+                    <div class="relative w-full h-3 bg-gradient-to-r from-[#0cce6b] 0% from-[#0cce6b] 60% via-[#ffa400] 60% via-[#ffa400] 85% to-[#ff4e42] 85% to-[#ff4e42] 100% rounded-full">
+                        <div id="pin-inp" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow hidden"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
+                        <span>Good (≤ 200ms)</span>
+                        <span class="text-center">Needs Improvement (200ms - 500ms)</span>
+                        <span>Poor (> 500ms)</span>
+                    </div>
+                </div>
 
-<div class="mb-6">
-    <div class="flex justify-between items-center mb-1">
-        <span class="text-sm font-semibold text-gray-700">Interaction to Next Paint (INP)</span>
-        <span id="metric-inp" class="font-mono font-bold text-gray-900">--</span>
-    </div>
-    <div class="relative w-full h-3 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full">
-        <div id="pin-inp" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow" style="left: 0%; display: none;"></div>
-    </div>
-    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
-        <span>Good (≤ 200ms)</span>
-        <span>Needs Improvement (200ms - 500ms)</span>
-        <span>Poor (> 500ms)</span>
-    </div>
-</div>
-
-<div class="mb-6">
-    <div class="flex justify-between items-center mb-1">
-        <span class="text-sm font-semibold text-gray-700">Cumulative Layout Shift (CLS)</span>
-        <span id="metric-cls" class="font-mono font-bold text-gray-900">--</span>
-    </div>
-    <div class="relative w-full h-3 bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full">
-        <div id="pin-cls" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow" style="left: 0%; display: none;"></div>
-    </div>
-    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
-        <span>Good (≤ 0.100)</span>
-        <span>Needs Improvement (0.100 - 0.250)</span>
-        <span>Poor (> 0.250)</span>
-    </div>
-</div>
-            </section>
+                <div class="mb-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-semibold text-gray-700">Cumulative Layout Shift (CLS)</span>
+                        <span id="metric-cls" class="font-mono font-bold text-gray-900">--</span>
+                    </div>
+                    <div class="relative w-full h-3 bg-gradient-to-r from-[#0cce6b] 0% from-[#0cce6b] 60% via-[#ffa400] 60% via-[#ffa400] 85% to-[#ff4e42] 85% to-[#ff4e42] 100% rounded-full">
+                        <div id="pin-cls" class="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-black border-2 border-white rounded-full shadow hidden"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 mt-1 px-1">
+                        <span>Good (≤ 0.100)</span>
+                        <span class="text-center">Needs Improvement (0.100 - 0.250)</span>
+                        <span>Poor (> 0.250)</span>
+                    </div>
+                </div>
+            </div>
 
             <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
                 <div class="mb-6 border-b border-gray-100 pb-4">
@@ -295,17 +302,33 @@
     </main>
 
     <script>
-        function toggleStrategy(mode) {
+        function filterStrategy(mode) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('strategy', mode);
+            window.location.href = url.toString();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Default to desktop if no URL param exists, or match database field context if available
+            let activeStrategy = urlParams.get('strategy') || "{{ latest_report.strategy }}";
+            if (activeStrategy !== 'mobile' && activeStrategy !== 'desktop') {
+                activeStrategy = 'desktop';
+            }
+
             const dLabel = document.getElementById('desktopLabel');
             const mLabel = document.getElementById('mobileLabel');
-            if (mode === 'desktop') {
-                dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
-                mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
-            } else {
-                mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
-                dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+
+            if (dLabel && mLabel) {
+                if (activeStrategy === 'desktop') {
+                    dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
+                    mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+                } else {
+                    mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
+                    dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+                }
             }
-        }
+        });
 
         document.addEventListener("DOMContentLoaded", function() {
             const form = document.getElementById('auditForm');
@@ -337,11 +360,7 @@
                 });
             });
 
-            const clockNode = document.getElementById('executionClock');
-            if (clockNode) {
-                const current = new Date();
-                clockNode.innerText = current.toLocaleDateString() + ' ' + current.toLocaleTimeString();
-            }
+            
 
             // --- DATA PARSING SEQUENCE FROM UPDATED DJANGO VIEWS CONTEXT ---
             {% if latest_report %}
@@ -385,34 +404,35 @@
             document.getElementById('lab-speedidx').style.color = (labSpeedIdx <= 3.4) ? "#0cce6b" : (labSpeedIdx <= 5.8) ? "#ffa400" : "#ff4e42";
 
             // --- PIECEWISE SPECTRUM PIN MAPPING COMPUTATION ---
-            // --- PIECEWISE SPECTRUM PIN MAPPING COMPUTATION ---
-            const clamp = (val) => Math.max(2, Math.min(val, 98));
+            const clamp = (val) => Math.max(1, Math.min(val, 99));
 
+            // LCP Mapping: Good (0 to 2.5s) maps to 0%-60% | Needs Improvement (2.5s to 4.0s) maps to 60%-85% | Poor (>4.0s) maps to 85%-100%
             let lcpPercent = 0;
             if (lcpValue !== null) {
                 if (lcpValue <= 2.5) {
-                    lcpPercent = (lcpValue / 2.5) * 70;
+                    lcpPercent = (lcpValue / 2.5) * 60;
                 } else if (lcpValue <= 4.0) {
-                    lcpPercent = 70 + ((lcpValue - 2.5) / 1.5) * 20;
+                    lcpPercent = 60 + ((lcpValue - 2.5) / 1.5) * 25;
                 } else {
-                    lcpPercent = 90 + (Math.min(lcpValue - 4.0, 4.0) / 4.0) * 10;
+                    lcpPercent = 85 + (Math.min(lcpValue - 4.0, 4.0) / 4.0) * 15;
                 }
                 if(document.getElementById('metric-lcp')) {
                     document.getElementById('metric-lcp').innerText = lcpValue.toFixed(2) + " s";
                     document.getElementById('metric-lcp').style.color = (lcpValue <= 2.5) ? "#0cce6b" : (lcpValue <= 4.0) ? "#ffa400" : "#ff4e42";
                 }
                 if(document.getElementById('pin-lcp')) {
-                    document.getElementById('pin-lcp').style.display = "block";
-                    document.getElementById('pin-lcp').style.left = clamp(lcpPercent) + "%";
+                    document.getElementById('pin-lcp').classList.remove('hidden');
+                    document.getElementById('pin-lcp').style.left = `${clamp(lcpPercent)}%`;
                 }
             } else {
                 if(document.getElementById('metric-lcp')) {
                     document.getElementById('metric-lcp').innerText = "N/A";
                     document.getElementById('metric-lcp').className = 'font-mono font-bold text-gray-400';
                 }
-                if(document.getElementById('pin-lcp')) document.getElementById('pin-lcp').style.display = "none";
+                if(document.getElementById('pin-lcp')) document.getElementById('pin-lcp').classList.add('hidden');
             }
 
+            // INP Mapping: Good (0 to 200ms) maps to 0%-60% | Needs Improvement (200ms to 500ms) maps to 60%-85% | Poor (>500ms) maps to 85%-100%
             let inpPercent = 0;
             if (inpValue !== null) {
                 if (inpValue <= 200) {
@@ -427,40 +447,41 @@
                     document.getElementById('metric-inp').style.color = (inpValue <= 200) ? "#0cce6b" : (inpValue <= 500) ? "#ffa400" : "#ff4e42";
                 }
                 if(document.getElementById('pin-inp')) {
-                    document.getElementById('pin-inp').style.display = "block";
-                    document.getElementById('pin-inp').style.left = clamp(inpPercent) + "%";
+                    document.getElementById('pin-inp').classList.remove('hidden');
+                    document.getElementById('pin-inp').style.left = `${clamp(inpPercent)}%`;
                 }
             } else {
                 if(document.getElementById('metric-inp')) {
                     document.getElementById('metric-inp').innerText = "N/A";
                     document.getElementById('metric-inp').className = 'font-mono font-bold text-gray-400';
                 }
-                if(document.getElementById('pin-inp')) document.getElementById('pin-inp').style.display = "none";
+                if(document.getElementById('pin-inp')) document.getElementById('pin-inp').classList.add('hidden');
             }
 
+            // CLS Mapping: Good (0 to 0.100) maps to 0%-60% | Needs Improvement (0.100 to 0.250) maps to 60%-85% | Poor (>0.250) maps to 85%-100%
             let clsPercent = 0;
             if (clsValue !== null) {
                 if (clsValue <= 0.1) {
-                    clsPercent = (clsValue / 0.1) * 85;
+                    clsPercent = (clsValue / 0.1) * 60;
                 } else if (clsValue <= 0.25) {
-                    clsPercent = 85 + ((clsValue - 0.1) / 0.15) * 10;
+                    clsPercent = 60 + ((clsValue - 0.1) / 0.15) * 25;
                 } else {
-                    clsPercent = 95 + (Math.min(clsValue - 0.25, 0.5) / 0.5) * 5;
+                    clsPercent = 85 + (Math.min(clsValue - 0.25, 0.25) / 0.25) * 15;
                 }
                 if(document.getElementById('metric-cls')) {
                     document.getElementById('metric-cls').innerText = clsValue.toFixed(3);
                     document.getElementById('metric-cls').style.color = (clsValue <= 0.1) ? "#0cce6b" : (clsValue <= 0.25) ? "#ffa400" : "#ff4e42";
                 }
                 if(document.getElementById('pin-cls')) {
-                    document.getElementById('pin-cls').style.display = "block";
-                    document.getElementById('pin-cls').style.left = clamp(clsPercent) + "%";
+                    document.getElementById('pin-cls').classList.remove('hidden');
+                    document.getElementById('pin-cls').style.left = `${clamp(clsPercent)}%`;
                 }
             } else {
                 if(document.getElementById('metric-cls')) {
                     document.getElementById('metric-cls').innerText = "N/A";
                     document.getElementById('metric-cls').className = 'font-mono font-bold text-gray-400';
                 }
-                if(document.getElementById('pin-cls')) document.getElementById('pin-cls').style.display = "none";
+                if(document.getElementById('pin-cls')) document.getElementById('pin-cls').classList.add('hidden');
             }
             {% endif %}
         });
