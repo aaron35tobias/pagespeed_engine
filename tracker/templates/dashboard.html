@@ -23,9 +23,7 @@
                 </div>
                 <span class="font-bold tracking-tight text-xl text-gray-900">PageSpeed</span>
             </div>
-            <div class="text-xs font-semibold uppercase tracking-wider text-gray-400 bg-gray-100 px-2.5 py-1 rounded">
-                
-            </div>
+            
         </div>
     </header>
 
@@ -43,8 +41,18 @@
             <div class="mb-6 text-center w-full">
         <div class="bg-gray-50 px-4 py-2.5 rounded-xl border border-gray-100 inline-block shadow-sm">
             <span class="text-sm text-gray-500 font-semibold tracking-wide uppercase">
-                Captured on System Time Matrix: 
-                <span class="text-blue-600 font-bold ml-1" id="executionClock"></span>
+                Captured on System Time Matrix:
+                <span class="text-blue-600 font-bold ml-1">
+                    {% if latest_report.updated_at %}
+                        {{ latest_report.updated_at|date:"m/d/Y h:i:s A" }}
+                    {% elif latest_report.created_at %}
+                        {{ latest_report.created_at|date:"m/d/Y h:i:s A" }}
+                    {% elif latest_report.timestamp %}
+                        {{ latest_report.timestamp }}
+                    {% else %}
+                        {% now "m/d/Y h:i:s A" %}
+                    {% endif %}
+                </span>
             </span>
         </div>
     </div>
@@ -67,14 +75,12 @@
                 <div class="flex flex-col items-center justify-center w-full border-t border-gray-50 pt-4">
                     <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 text-center">Device Strategy Mode</label>
                     <div class="bg-gray-100 p-1 rounded-xl flex space-x-1 max-w-sm w-full">
-                        <label id="desktopLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2">
-                            <input type="radio" name="strategy" value="desktop" checked class="hidden" onclick="toggleStrategy('desktop')">
+                        <button type="button" onclick="filterStrategy('desktop')" id="desktopLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2">
                             <span>🖥️ Desktop</span>
-                        </label>
-                        <label id="mobileLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2">
-                            <input type="radio" name="strategy" value="mobile" class="hidden" onclick="toggleStrategy('mobile')">
+                        </button>
+                        <button type="button" onclick="filterStrategy('mobile')" id="mobileLabel" class="cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center space-x-2">
                             <span>📱 Mobile</span>
-                        </label>
+                        </button>
                     </div>
                 </div>
 
@@ -296,17 +302,33 @@
     </main>
 
     <script>
-        function toggleStrategy(mode) {
+        function filterStrategy(mode) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('strategy', mode);
+            window.location.href = url.toString();
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            // Default to desktop if no URL param exists, or match database field context if available
+            let activeStrategy = urlParams.get('strategy') || "{{ latest_report.strategy }}";
+            if (activeStrategy !== 'mobile' && activeStrategy !== 'desktop') {
+                activeStrategy = 'desktop';
+            }
+
             const dLabel = document.getElementById('desktopLabel');
             const mLabel = document.getElementById('mobileLabel');
-            if (mode === 'desktop') {
-                dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
-                mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
-            } else {
-                mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
-                dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+
+            if (dLabel && mLabel) {
+                if (activeStrategy === 'desktop') {
+                    dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
+                    mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+                } else {
+                    mLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white shadow-sm text-blue-600 flex items-center justify-center space-x-2";
+                    dLabel.className = "cursor-pointer flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-600 flex items-center justify-center space-x-2";
+                }
             }
-        }
+        });
 
         document.addEventListener("DOMContentLoaded", function() {
             const form = document.getElementById('auditForm');
@@ -338,11 +360,7 @@
                 });
             });
 
-            const clockNode = document.getElementById('executionClock');
-            if (clockNode) {
-                const current = new Date();
-                clockNode.innerText = current.toLocaleDateString() + ' ' + current.toLocaleTimeString();
-            }
+            
 
             // --- DATA PARSING SEQUENCE FROM UPDATED DJANGO VIEWS CONTEXT ---
             {% if latest_report %}
