@@ -240,6 +240,52 @@ def api_recent_websites(request):
     })
 
 
+# JSON API ENDPOINT FOR HISTORIC REPORT DATA (one site, all four scores, over time)
+def api_website_report_history(request, website_id):
+    """
+    Returns the full audit HISTORY for ONE website as a timeline.
+    Each entry has the date plus all four scores (performance, accessibility,
+    best-practices, SEO). Optional date range: ?start=YYYY-MM-DD&end=YYYY-MM-DD
+    """
+    # Make sure the website actually exists
+    try:
+        website = Website.objects.get(id=website_id)
+    except Website.DoesNotExist:
+        return JsonResponse({'error': 'Website not found'}, status=404)
+
+    reports = PageSpeedReport.objects.filter(website=website, status='success')
+
+    # Apply the date range if the frontend sent one
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    try:
+        if start:
+            reports = reports.filter(fetched_at__date__gte=start)
+        if end:
+            reports = reports.filter(fetched_at__date__lte=end)
+    except (ValueError, ValidationError):
+        return JsonResponse({'error': 'Dates must look like YYYY-MM-DD'}, status=400)
+
+    # Oldest -> newest so it reads like a timeline / trend
+    reports = list(reports.order_by('fetched_at'))
+
+    return JsonResponse({
+        'website': website.url,
+        'website_id': website.id,
+        'count': len(reports),
+        'reports': [
+            {
+                'date': r.fetched_at.strftime('%b %d, %Y %H:%M'),
+                'performance': r.performance_score,
+                'accessibility': r.accessibility_score,
+                'best_practices': r.best_practices_score,
+                'seo': r.seo_score,
+            }
+            for r in reports
+        ],
+    })
+
+
 # JSON API ENDPOINT FOR CHART.JS
 def api_website_history(request, website_id):
     """

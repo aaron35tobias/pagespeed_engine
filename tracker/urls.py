@@ -9,4 +9,5 @@ urlpatterns = [
     # Internal JSON API endpoint for frontend data visualizations (Chart.js)
     path('api/history/<int:website_id>/', views.api_website_history, name='api_history'),
     path('api/websites/', views.api_recent_websites, name='api_recent_websites'),
+    path('api/websites/<int:website_id>/history/', views.api_website_report_history, name='api_website_report_history'),
 ]
