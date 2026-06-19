@@ -1,0 +1,10 @@
+{
+    // Disable the built-in JS/TS validator inside HTML files.
+    // VS Code's language server tries to parse Django template tags like
+    // {% if %} / {% endif %} as JavaScript and throws false positives such as
+    // "Expression expected" or "( expected". These tags are processed server-side
+    // by Django before the browser ever sees the page, so they are never actually
+    // invalid JavaScript at runtime.
+    "javascript.validate.enable": false,
+    "html.validate.scripts": false
+}
