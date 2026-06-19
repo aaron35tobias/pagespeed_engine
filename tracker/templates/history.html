@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Explorer API Testing</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #111827;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-group input,
+        .input-group select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            border-color: #2563eb;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+            height: 260px;
+            display: none;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-top: 40px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <a href="/"
+            style="font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: none; display: inline-block; margin-bottom: 10px;">←
+            Back to Dashboard</a>
+        <h1>History Search API Demo</h1>
+        <p>A testing playground for the API. This page is completely separate from the main dashboard.</p>
+    </div>
+
+    <!-- The Search Filters -->
+    <div class="controls">
+        <div class="input-group">
+            <label>URL / Domain</label>
+            <input type="text" id="q" placeholder="e.g. adidas.com">
+        </div>
+        <div class="input-group">
+            <label>Strategy</label>
+            <select id="strategy">
+                <option value="">All</option>
+                <option value="desktop">Desktop</option>
+                <option value="mobile">Mobile</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Start Date</label>
+            <input type="date" id="start">
+        </div>
+        <div class="input-group">
+            <label>End Date</label>
+            <input type="date" id="end">
+        </div>
+        <button onclick="fetchHistory()">Search Reports</button>
+    </div>
+
+    <!-- Performance Trend Graph -->
+    <div class="chart-container" id="chartBox">
+        <canvas id="performanceChart"></canvas>
+    </div>
+
+    <!-- The Results Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>URL</th>
+                <th>Strategy</th>
+                <th>Perf</th>
+                <th>Access</th>
+                <th>Best Prac</th>
+                <th>SEO</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTable">
+            <tr>
+                <td colspan="8" style="text-align: center; color: #9ca3af;">Click Search to load data</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+    <script>
+        let historyChart = null;
+
+        function renderChart(results) {
+            const chartBox = document.getElementById('chartBox');
+
+            // Only plot successful runs that have a performance score
+            const validData = [...results].reverse().filter(r => r.status === 'success' && r.performance !== null);
+
+            if (validData.length === 0) {
+                chartBox.style.display = 'none';
+                return;
+            }
+
+            chartBox.style.display = 'block';
+
+            const labels = validData.map(r => r.fetched_at.split(',').slice(0, 2).join(',')); // e.g. "Jun 19, 2026"
+            const scores = validData.map(r => r.performance);
+
+            if (historyChart) {
+                historyChart.destroy();
+            }
+
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Performance Score',
+                        data: scores,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#2563eb',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: { stepSize: 25 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // JS Logic to interact with the API
+        function fetchHistory() {
+            const q = document.getElementById('q').value;
+            const strategy = document.getElementById('strategy').value;
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+
+            // Build the URL with query parameters
+            const url = `/api/history/search/?q=${encodeURIComponent(q)}&strategy=${strategy}&start=${start}&end=${end}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('resultsTable');
+                    tbody.innerHTML = ''; // Clear old results
+
+                    // Render chart
+                    renderChart(data.results || []);
+
+                    if (!data.results || data.results.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #9ca3af;">No results found</td></tr>`;
+                        return;
+                    }
+
+                    // Render rows
+                    data.results.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="color: #6b7280; font-size: 12px;">${r.fetched_at}</td>
+                            <td style="font-weight: 500;">${r.url}</td>
+                            <td style="text-transform: capitalize;">${r.strategy}</td>
+                            <td style="color: ${r.performance >= 90 ? '#16a34a' : (r.performance >= 50 ? '#d97706' : '#dc2626')}; font-weight: 600;">${r.performance}</td>
+                            <td>${r.accessibility || '—'}</td>
+                            <td>${r.best_practices || '—'}</td>
+                            <td>${r.seo || '—'}</td>
+                            <td><button class="btn-delete" onclick="deleteReport(${r.id})">Delete</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(err => console.error("Error fetching history:", err));
+        }
+
+        function deleteReport(reportId) {
+            if (!confirm('Are you sure you want to permanently delete this report from the database?')) return;
+
+            fetch(`/api/history/${reportId}/delete/`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.deleted) {
+                        // Re-fetch the list to update the table
+                        fetchHistory();
+                    } else {
+                        alert(data.error || 'Failed to delete');
+                    }
+                })
+                .catch(err => console.error("Error deleting report:", err));
+        }
+    </script>
+</body>
+
+</html>

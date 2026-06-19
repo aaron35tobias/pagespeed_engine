@@ -22,11 +22,11 @@ def run_audits():
 
 
 if __name__ == "__main__":
-print("[*] PageSpeed Wisoft — Daily Scheduler")
+    print("[*] PageSpeed Wisoft — Daily Scheduler")
     print(f"[*] Runs every day at {SCHEDULE_HOUR_UTC:02d}:{SCHEDULE_MINUTE_UTC:02d} UTC")
-print("[*] Press Ctrl+C to stop.\n")
+    print("[*] Press Ctrl+C to stop.\n")
 
-while True:
+    while True:
         wait_seconds, target = seconds_until_next_run()
         print(f"[*] Next audit  → {target.strftime('%Y-%m-%d %H:%M:%S UTC')}")
         print(f"[*] Sleeping    → {wait_seconds / 3600:.2f} h ({wait_seconds / 60:.0f} min)\n")

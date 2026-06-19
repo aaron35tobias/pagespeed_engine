@@ -18,6 +18,10 @@ def run_audit_view(request):
         #auto correct missing protocols to prevent api errors
         if target_url and not target_url.startswith(('http://', 'https://')):
             target_url = 'https://' + target_url
+            
+        # Remove trailing slash to prevent duplicates (e.g. example.com vs example.com/)
+        if target_url.endswith('/'):
+            target_url = target_url[:-1]
 
         # fetch existing website or create new parent record
         website, created = Website.objects.get_or_create(
@@ -25,15 +29,30 @@ def run_audit_view(request):
             defaults={'name': target_url}
         )
 
-        # Only run the strategy the user selected for faster results (single API call)
-        selected_strategy = request.POST.get('strategy', 'desktop')
-        success, result, report = fetch_pagespeed_data(website, selected_strategy)
+        # Run both desktop and mobile audits sequentially so both are available
+        desktop_success, desktop_result, desktop_report = fetch_pagespeed_data(website, 'desktop')
+        
+        # Add a short delay to prevent Google API 500 Server Errors due to rate limiting
+        import time
+        time.sleep(2)
+        
+        mobile_success, mobile_result, mobile_report = fetch_pagespeed_data(website, 'mobile')
 
-        if success:
-            messages.success(request, f"{selected_strategy.upper()} audit complete for {target_url}. Performance score: {result}.")
-            return redirect(f"/?report_id={report.id}")
+        selected_strategy = request.POST.get('strategy', 'desktop')
+        
+        if desktop_success and mobile_success:
+            messages.success(request, f"Audit complete for {target_url} (Desktop & Mobile).")
+            # Redirect to the strategy they searched for, or desktop
+            redirect_id = desktop_report.id if selected_strategy == 'desktop' else mobile_report.id
+            return redirect(f"/?report_id={redirect_id}")
+        elif desktop_success:
+            messages.warning(request, f"Desktop audit succeeded, but Mobile failed: {mobile_result}")
+            return redirect(f"/?report_id={desktop_report.id}")
+        elif mobile_success:
+            messages.warning(request, f"Mobile audit succeeded, but Desktop failed: {desktop_result}")
+            return redirect(f"/?report_id={mobile_report.id}")
         else:
-            messages.error(request, f"Audit failed: {result}")
+            messages.error(request, f"Audit failed for both strategies: {desktop_result}")
             return redirect('run_audit') 
 
     # GET REQUEST: RENDER DASHBOARD & LATEST DATA
@@ -231,3 +250,61 @@ def delete_website(request, website_id):
     website.delete()  # CASCADE removes its reports + alerts too
     messages.success(request, f"Deleted {url} and all of its audit history.")
     return redirect('run_audit')
+
+
+# Renders the dedicated full-page history explorer
+def history_page(request):
+    return render(request, 'history.html', {})
+
+
+# Full history search API: filter by URL text, date range, and strategy
+def api_history_search(request):
+    q        = request.GET.get('q', '').strip()
+    start    = request.GET.get('start', '').strip()
+    end      = request.GET.get('end', '').strip()
+    strategy = request.GET.get('strategy', '').strip().lower()
+
+    reports = PageSpeedReport.objects.select_related('website').order_by('-fetched_at')
+
+    if q:
+        reports = reports.filter(website__url__icontains=q)
+    if strategy in ('desktop', 'mobile'):
+        reports = reports.filter(strategy=strategy)
+    try:
+        if start:
+            reports = reports.filter(fetched_at__date__gte=start)
+        if end:
+            reports = reports.filter(fetched_at__date__lte=end)
+    except (ValueError, ValidationError):
+        return JsonResponse({'error': 'Dates must be YYYY-MM-DD'}, status=400)
+
+    reports = reports[:200]
+    results = []
+    for r in reports:
+        results.append({
+            'id':             r.id,
+            'url':            r.website.url,
+            'strategy':       r.strategy,
+            'performance':    r.performance_score,
+            'accessibility':  r.accessibility_score,
+            'best_practices': r.best_practices_score,
+            'seo':            r.seo_score,
+            'status':         r.status,
+            'fetched_at':     r.fetched_at.strftime('%b %d, %Y, %I:%M:%S %p'),
+        })
+    return JsonResponse({'count': len(results), 'results': results})
+
+
+# DELETE a single PageSpeedReport from the DB
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
+def api_history_delete(request, report_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Method not allowed. Use DELETE.'}, status=405)
+    try:
+        report = PageSpeedReport.objects.get(id=report_id)
+        report.delete()
+        return JsonResponse({'deleted': True, 'id': report_id})
+    except PageSpeedReport.DoesNotExist:
+        return JsonResponse({'error': 'Report not found'}, status=404)
