@@ -251,6 +251,16 @@
         .search-item-url { font-size: 12.5px; font-weight: 500; color: var(--text-primary); max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .search-item-meta { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
         .search-item-score { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+        .search-delete {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px;
+            border-radius: 4px;
+            font-size: 12px; line-height: 1;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            transition: background .1s, color .1s;
+        }
+        .search-delete:hover { background: var(--poor-bg); color: var(--poor); }
 
         /* Analyze button */
         .btn-primary {
@@ -621,6 +631,18 @@
         .num-good { color: var(--good); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
         .num-ni   { color: var(--ni);   font-family: 'JetBrains Mono', monospace; font-weight: 600; }
         .num-poor { color: var(--poor); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+        .delete-btn {
+            background: transparent;
+            border: 1px solid color-mix(in srgb, var(--poor) 35%, transparent);
+            color: var(--poor);
+            padding: 3px 9px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .1s, border-color .1s;
+        }
+        .delete-btn:hover { background: var(--poor-bg); border-color: var(--poor); }
         .num-muted { color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
 
         /* ═══════════════════════════════════════
@@ -959,6 +981,7 @@
                         <th>Access</th>
                         <th>Best Pract</th>
                         <th>SEO</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -977,9 +1000,16 @@
                         <td class="num-muted">{{ report.accessibility_score|default:"—" }}</td>
                         <td class="num-muted">{{ report.best_practices_score|default:"—" }}</td>
                         <td class="num-muted">{{ report.seo_score|default:"—" }}</td>
+                        <td style="text-align:right;">
+                            <button type="button" class="delete-btn"
+                                    title="Delete this URL and all its history"
+                                    onclick="event.stopPropagation(); deleteSite({{ report.website_id }}, '{{ report.website.url|escapejs }}')">
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7" style="padding:32px; text-align:center; color:var(--text-tertiary); font-size:13px;">No historical data for this target.</td></tr>
+                    <tr><td colspan="8" style="padding:32px; text-align:center; color:var(--text-tertiary); font-size:13px;">No historical data for this target.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -1031,6 +1061,29 @@ function setStrategy(mode) {
 }
 
 /* ═══════════════════════════════
+   DELETE SITE (+ all its history)
+   — POST to the delete endpoint, then reload so the URL is gone from the
+     History Log, the History Search dropdown, and MySQL.
+════════════════════════════════ */
+function deleteSite(websiteId, url) {
+    if (!confirm('Delete ' + url + ' and ALL of its audit history?\nThis cannot be undone.')) return;
+
+    // Build a POST form on the fly (carries the CSRF token Django requires)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/websites/' + websiteId + '/delete/';
+
+    const token = document.createElement('input');
+    token.type = 'hidden';
+    token.name = 'csrfmiddlewaretoken';
+    token.value = '{{ csrf_token }}';
+    form.appendChild(token);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+/* ═══════════════════════════════
    HISTORY SEARCH
 ════════════════════════════════ */
 (function() {
@@ -1056,8 +1109,20 @@ function setStrategy(mode) {
                         <div class="search-item-url">${r.url}</div>
                         <div class="search-item-meta">${r.fetched_at} &middot; ${r.strategy}</div>
                     </div>
-                    <span class="search-item-score" ${scoreClass(r.performance_score)}>${r.performance_score !== null ? r.performance_score : '—'}</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="search-item-score" ${scoreClass(r.performance_score)}>${r.performance_score !== null ? r.performance_score : '—'}</span>
+                        <span class="search-delete" data-id="${r.website_id}" data-url="${r.url}" title="Delete this URL and all its history">✕</span>
+                    </div>
                 </a>`).join('');
+
+            // Delete control: remove the whole URL without following the row's link
+            dd.querySelectorAll('.search-delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deleteSite(parseInt(this.dataset.id, 10), this.dataset.url);
+                });
+            });
         }
         dd.classList.add('open');
     }
