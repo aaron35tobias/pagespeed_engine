@@ -1171,7 +1171,26 @@ document.addEventListener('DOMContentLoaded', function() {
         // Inject a prominent floating-label pin on the bar
         const outerEl = document.getElementById('bar-' + baseId);
         if (outerEl && totalMax) {
-            const pct = Math.min(98, Math.max(2, (val / totalMax) * 100));
+            const goodSeg = outerEl.querySelector('.seg-good');
+            const niSeg = outerEl.querySelector('.seg-ni');
+            const wGood = goodSeg ? parseFloat(goodSeg.style.width) : 0;
+            const wNi = niSeg ? parseFloat(niSeg.style.width) : 0;
+
+            let calculatedPct;
+            if (wGood > 0 && wNi > 0) {
+                if (val <= goodMax) {
+                    calculatedPct = (val / goodMax) * wGood;
+                } else if (val <= niMax) {
+                    calculatedPct = wGood + ((val - goodMax) / (niMax - goodMax)) * wNi;
+                } else {
+                    const wPoor = 100 - wGood - wNi;
+                    calculatedPct = wGood + wNi + (Math.min(1, (val - niMax) / (totalMax - niMax)) * wPoor);
+                }
+            } else {
+                calculatedPct = (val / totalMax) * 100;
+            }
+            const pct = Math.min(98, Math.max(2, calculatedPct));
+
             // Build pin: label floats above the vertical stick
             const wrap = document.createElement('div');
             wrap.className = 'bar-pin-wrap';
