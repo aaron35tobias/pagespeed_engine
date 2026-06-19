@@ -2,34 +2,36 @@ import os
 import time
 from datetime import datetime, timezone, timedelta
 
-# Daily audit schedule: 06:00 AM UTC
+# Daily audit time (UTC)
 SCHEDULE_HOUR_UTC   = 6
 SCHEDULE_MINUTE_UTC = 0
 
 
-def next_run_at():
-    """Return the next datetime when the audit should fire (06:00 AM UTC)."""
+def seconds_until_next_run():
+    """Return seconds to sleep until the next 06:00 AM UTC."""
     now    = datetime.now(timezone.utc)
     target = now.replace(hour=SCHEDULE_HOUR_UTC, minute=SCHEDULE_MINUTE_UTC, second=0, microsecond=0)
-    # If we are already past today's 06:00 AM UTC, schedule for tomorrow
     if now >= target:
         target += timedelta(days=1)
-    return target
+    return (target - now).total_seconds(), target
 
 
+def run_audits():
+    """Invoke the Django management command that scans all active websites."""
+    os.system("python manage.py run_audits")
+
+
+if __name__ == "__main__":
 print("[*] PageSpeed Wisoft — Daily Scheduler")
-print(f"[*] Audits will run every day at {SCHEDULE_HOUR_UTC:02d}:{SCHEDULE_MINUTE_UTC:02d} UTC")
+    print(f"[*] Runs every day at {SCHEDULE_HOUR_UTC:02d}:{SCHEDULE_MINUTE_UTC:02d} UTC")
 print("[*] Press Ctrl+C to stop.\n")
 
 while True:
-    target       = next_run_at()
-    wait_seconds = (target - datetime.now(timezone.utc)).total_seconds()
-
-    print(f"[*] Next audit → {target.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    print(f"[*] Sleeping for {wait_seconds / 3600:.2f} hours ({wait_seconds / 60:.0f} min)...\n")
+        wait_seconds, target = seconds_until_next_run()
+        print(f"[*] Next audit  → {target.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        print(f"[*] Sleeping    → {wait_seconds / 3600:.2f} h ({wait_seconds / 60:.0f} min)\n")
     print("-" * 50)
 
-    # Sleep until the exact trigger time
     time.sleep(wait_seconds)
 
     run_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
