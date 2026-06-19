@@ -1,9 +1,17 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Website(models.Model):
     name = models.CharField(max_length=120, blank=True)
     url = models.URLField(unique=True)
+    owner = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    notification_email = models.EmailField(null=True, blank=True)
+    alert_enabled = models.BooleanField(default=True)
+    alert_cooldown_minutes = models.PositiveIntegerField(default=1440)
     performance_threshold = models.PositiveSmallIntegerField(default=80)
+    
+    is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -12,6 +20,8 @@ class Website(models.Model):
 class PageSpeedReport(models.Model):
     website = models.ForeignKey(Website, on_delete=models.CASCADE, related_name='reports')
     strategy = models.CharField(max_length=10) # 'desktop' or 'mobile'
+    
+
     
     # Core Scores (0-100)
     performance_score = models.PositiveSmallIntegerField(null=True, blank=True)
