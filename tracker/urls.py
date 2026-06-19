@@ -13,4 +13,9 @@ urlpatterns = [
     path('api/reports/search/', views.api_reports_search, name='api_reports_search'),
     # Delete a website + all its audit history (from the History Log delete button)
     path('websites/<int:website_id>/delete/', views.delete_website, name='delete_website'),
+    
+    # ── History Explorer API & Page (For your friend to work on) ──
+    path('history/', views.history_page, name='history_page'),
+    path('api/history/search/', views.api_history_search, name='api_history_search'),
+    path('api/history/<int:report_id>/delete/', views.api_history_delete, name='api_history_delete'),
 ]

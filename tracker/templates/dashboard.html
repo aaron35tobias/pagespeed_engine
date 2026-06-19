@@ -398,15 +398,23 @@
         }
 
         .search-delete {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 20px; height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
             border-radius: 4px;
-            font-size: 12px; line-height: 1;
+            font-size: 12px;
+            line-height: 1;
             color: var(--text-tertiary);
             cursor: pointer;
             transition: background .1s, color .1s;
         }
-        .search-delete:hover { background: var(--poor-bg); color: var(--poor); }
+
+        .search-delete:hover {
+            background: var(--poor-bg);
+            color: var(--poor);
+        }
 
         /* Analyze button */
         .btn-primary {
@@ -1061,7 +1069,11 @@
             cursor: pointer;
             transition: background .1s, border-color .1s;
         }
-        .delete-btn:hover { background: var(--poor-bg); border-color: var(--poor); }
+
+        .delete-btn:hover {
+            background: var(--poor-bg);
+            border-color: var(--poor);
+        }
 
         .num-muted {
             color: var(--text-secondary);
@@ -1138,26 +1150,31 @@
         <div class="layout header-inner">
             <!-- Text-only logo -->
             <div class="logo">PageSpeed Wisoft</div>
-            <button class="theme-btn" id="themeToggle" title="Toggle theme">
-                <!-- Sun: shown in dark mode → click to switch to light -->
-                <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-                <!-- Moon: shown in light mode → click to switch to dark -->
-                <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-            </button>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <a href="{% url 'history_page' %}"
+                    style="font-size:12px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.05em; transition:color 0.15s;">View
+                    History</a>
+                <button class="theme-btn" id="themeToggle" title="Toggle theme">
+                    <!-- Sun: shown in dark mode → click to switch to light -->
+                    <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <!-- Moon: shown in light mode → click to switch to dark -->
+                    <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -1168,8 +1185,9 @@
             {% if messages or error %}
             <div class="alert-wrap">
                 {% for message in messages %}
-                <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{
-                    message }}</div>
+                <div
+                    class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
+                    {{ message }}</div>
                 {% endfor %}
                 {% if error %}<div class="alert alert-warning">{{ error }}</div>{% endif %}
             </div>
@@ -1237,8 +1255,9 @@
                     <div class="report-meta">
                         <span class="report-label">Report from</span>
                         <span class="report-time">{{ latest_report.fetched_at|date:"M d, Y, g:i:s A" }}</span>
-                        <a class="report-url" href="{{ selected_website.url }}" target="_blank" rel="noopener">{{
-                            selected_website.url }}</a>
+                        <a class="report-url" href="{{ selected_website.url }}" target="_blank" rel="noopener">
+                            {{ selected_website.url }}
+                        </a>
                     </div>
                     <span class="strategy-badge {{ latest_report.strategy }}">{{ latest_report.strategy }}</span>
                 </div>
@@ -1501,8 +1520,10 @@
                             <tbody>
                                 {% for report in history %}
                                 <tr onclick="location='/?report_id={{ report.id }}'">
-                                    <td style="font-size:12px; color:var(--text-secondary);">{{
-                                        report.fetched_at|date:"M d, Y, g:i A" }}</td>
+                                    <td style="font-size:12px; color:var(--text-secondary); line-height:1.4;">
+                                        {{ report.fetched_at|date:"M d, Y, g:i A" }}<br>
+                                        <span style="color:var(--accent);">{{ selected_website.url }}</span>
+                                    </td>
                                     <td style="font-size:11px; text-transform:capitalize; color:var(--text-secondary);">
                                         {{ report.strategy }}</td>
                                     <td>
@@ -1520,8 +1541,8 @@
                                     <td class="num-muted">{{ report.seo_score|default:"—" }}</td>
                                     <td style="text-align:right;">
                                         <button type="button" class="delete-btn"
-                                                title="Delete this URL and all its history"
-                                                onclick="event.stopPropagation(); deleteSite({{ report.website_id }}, '{{ report.website.url|escapejs }}')">
+                                            title="Delete this URL and all its history"
+                                            onclick="event.stopPropagation(); deleteSite({{ report.website_id }}, '{{ report.website.url|escapejs }}')">
                                             Delete
                                         </button>
                                     </td>
