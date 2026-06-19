@@ -1,17 +1,15 @@
 import requests
 import time
-from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
-from tracker.models import Website, PageSpeedReport, AlertLog
+from tracker.models import Website, PageSpeedReport
 
 class Command(BaseCommand):
     help = 'Loops through all active websites and runs both Desktop and Mobile PageSpeed audits.'
 
     def handle(self, *args, **kwargs):
-        websites = Website.objects.all()
+        # Only scan websites that are marked active
+        websites = Website.objects.filter(is_active=True)
         
         if not websites:
             self.stdout.write(self.style.WARNING("No websites found in the database. Exiting."))
@@ -36,7 +34,7 @@ class Command(BaseCommand):
                 }
 
                 try:
-                    response = requests.get(api_url, params=params)
+                    response = requests.get(api_url, params=params, timeout=30)
                     response.raise_for_status()
                     data = response.json()
 
@@ -89,27 +87,8 @@ class Command(BaseCommand):
                         status='success'
                     )
 
-                    self.stdout.write(self.style.SUCCESS(f"    [OK] Saved {loop_strategy.upper()} score: {perf_score}"))
-
-                    # ALERT ENGINE
-                    if report.performance_score < website.performance_threshold:
-                        recent_alert = AlertLog.objects.filter(
-                            website=website,
-                            alert_type='threshold_breach',
-                            created_at__gte=timezone.now() - timedelta(minutes=1440)
-                        ).exists()
-
-                        if not recent_alert:
-                            subject = f'ALERT: {loop_strategy.upper()} PageSpeed dropped to {report.performance_score} for {website.name}'
-                            message = f'Automated Audit: The {loop_strategy.upper()} score for {website.url} has dropped to {report.performance_score}.'
-                            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, ['your_team_email@example.com'])
-                            
-                            AlertLog.objects.create(
-                                website=website, report=report, alert_type='threshold_breach',
-                                score_at_alert=report.performance_score, sent_to='your_team_email@example.com',
-                                subject=subject, delivered=True
-                            )
-                            self.stdout.write(self.style.WARNING(f"    [!] WARNING EMAIL DISPATCHED"))
+                    self.stdout.write(self.style.SUCCESS(f"    [OK] {loop_strategy.upper()} score: {perf_score}"))
+                    # Alert signals fire automatically via post_save in signals.py
 
                 except requests.exceptions.RequestException as e:
                     PageSpeedReport.objects.create(website=website, strategy=loop_strategy, status='failed', error_message=str(e))
