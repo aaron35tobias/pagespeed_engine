@@ -6,7 +6,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Website, PageSpeedReport, AlertLog 
+from django.views.decorators.http import require_POST
+from .models import Website, PageSpeedReport, AlertLog
 from .services import fetch_pagespeed_data
 
 
@@ -201,6 +202,7 @@ def api_reports_search(request):
     for r in reports:
         results.append({
             'id': r.id,
+            'website_id': r.website_id,
             'url': r.website.url,
             'strategy': r.strategy,
             'performance_score': r.performance_score,
@@ -208,3 +210,24 @@ def api_reports_search(request):
             'fetched_at': r.fetched_at.strftime('%b %d, %Y, %I:%M:%S %p'),
         })
     return JsonResponse({'results': results})
+
+
+# DELETE A WEBSITE AND ITS ENTIRE AUDIT HISTORY (from the History Log delete button)
+@require_POST
+def delete_website(request, website_id):
+    """
+    Permanently delete one website and ALL of its audit reports from MySQL.
+    Deleting the Website cascades to its PageSpeedReports and AlertLogs, so the
+    URL also disappears from the History Log and the History Search dropdown.
+    POST-only so it can't be triggered by accident (e.g. a stray GET/link).
+    """
+    try:
+        website = Website.objects.get(id=website_id)
+    except Website.DoesNotExist:
+        messages.error(request, "That site was already removed.")
+        return redirect('run_audit')
+
+    url = website.url
+    website.delete()  # CASCADE removes its reports + alerts too
+    messages.success(request, f"Deleted {url} and all of its audit history.")
+    return redirect('run_audit')

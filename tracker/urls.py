@@ -11,4 +11,6 @@ urlpatterns = [
     path('api/websites/', views.api_recent_websites, name='api_recent_websites'),
     # Search bar autocomplete - returns reports filtered by URL query
     path('api/reports/search/', views.api_reports_search, name='api_reports_search'),
+    # Delete a website + all its audit history (from the History Log delete button)
+    path('websites/<int:website_id>/delete/', views.delete_website, name='delete_website'),
 ]
