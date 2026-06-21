@@ -19,8 +19,8 @@
 - [x] **Alert Logistics**: Define and migrate the `AlertLog` table to debounce duplicate email warnings.
 - [x] **Email Logic Integration**: Complete the threshold evaluation logic by triggering a `send_mail` function when `performance_score < performance_threshold`.
 
-## Phase 3: Automation & Scale (Upcoming)
-- [ ] **Asynchronous Workers**: Migrate the newly extracted `fetch_pagespeed_data` logic to a Celery worker to prevent browser blocking.
-- [ ] **Audit Automation**: Wire up `django-celery-beat` to schedule and execute recurring API pings (hourly/daily) for all active websites.
-- [ ] **Production SMTP**: Swap Django's console email backend for a production provider (e.g., SendGrid, Mailgun, Amazon SES).
+## Phase 3: Automation & Scale (Completed)
+- [x] **Asynchronous Workers**: Migrate the newly extracted `fetch_pagespeed_data` logic to a Celery worker to prevent browser blocking.
+- [x] **Audit Automation**: Wire up `django-celery-beat` to schedule and execute recurring API pings (hourly/daily) for all active websites.
+- [x] **Production SMTP**: Swap Django's console email backend for a production provider (e.g., SendGrid, Mailgun, Amazon SES).
 

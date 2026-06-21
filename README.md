@@ -26,6 +26,8 @@ cd pagespeed_engine
 - Start server: `python manage.py runserver`
 - To check whether server is running or not go to web browser and enter http://127.0.0.1:8000/ as URL.
 - To sync DB with our models.py `python manage.py makemigrations` and `python manage.py migrate`
+- To run background tasks, start the Celery worker (requires Redis running on port 6379): `celery -A config worker -l info --pool=solo`
+- To run scheduled automated audits, start Celery Beat: `celery -A config beat -l info`
 
 
 ## Git Workflow & Contribution Guide

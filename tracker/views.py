@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from .models import Website, PageSpeedReport, AlertLog
-from .services import fetch_pagespeed_data
+from .tasks import run_audit_task
 
 
 # run audit and save to MySQL
@@ -29,31 +29,14 @@ def run_audit_view(request):
             defaults={'name': target_url}
         )
 
-        # Run both desktop and mobile audits sequentially so both are available
-        desktop_success, desktop_result, desktop_report = fetch_pagespeed_data(website, 'desktop')
-        
-        # Add a short delay to prevent Google API 500 Server Errors due to rate limiting
-        import time
-        time.sleep(2)
-        
-        mobile_success, mobile_result, mobile_report = fetch_pagespeed_data(website, 'mobile')
+        # Dispatch background tasks
+        run_audit_task.delay(website.id, 'desktop')
+        run_audit_task.delay(website.id, 'mobile')
 
         selected_strategy = request.POST.get('strategy', 'desktop')
         
-        if desktop_success and mobile_success:
-            messages.success(request, f"Audit complete for {target_url} (Desktop & Mobile).")
-            # Redirect to the strategy they searched for, or desktop
-            redirect_id = desktop_report.id if selected_strategy == 'desktop' else mobile_report.id
-            return redirect(f"/?report_id={redirect_id}")
-        elif desktop_success:
-            messages.warning(request, f"Desktop audit succeeded, but Mobile failed: {mobile_result}")
-            return redirect(f"/?report_id={desktop_report.id}")
-        elif mobile_success:
-            messages.warning(request, f"Mobile audit succeeded, but Desktop failed: {desktop_result}")
-            return redirect(f"/?report_id={mobile_report.id}")
-        else:
-            messages.error(request, f"Audit failed for both strategies: {desktop_result}")
-            return redirect('run_audit') 
+        messages.success(request, f"Audit queued for {target_url} (Desktop & Mobile). It will appear in your history shortly.")
+        return redirect(f"/?url={target_url}&strategy={selected_strategy}")
 
     # GET REQUEST: RENDER DASHBOARD & LATEST DATA
     context = {}
