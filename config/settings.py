@@ -137,10 +137,13 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 # Celery Configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+
+# FOR LOCAL DEMO ONLY: Run celery tasks synchronously so you don't need Redis installed on Windows.
+CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=True)
 
 # Email backend configuration
 if DEBUG:

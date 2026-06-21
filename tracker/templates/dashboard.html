@@ -1233,6 +1233,16 @@
                 </form>
             </div>
 
+            <!-- LOADING -->
+            <div id="loadingState" style="display:none;">
+                <div class="spinner-ring"></div>
+                <div class="loading-title">Running analysis</div>
+                <div class="loading-sub" id="loadingStatus">Initiating connection…</div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
             <!-- DASHBOARD DATA -->
             <div id="dashboardData" class="section-gap">
                 {% if latest_report %}
@@ -1671,6 +1681,27 @@
                 if (!inp.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('open');
             });
         })();
+
+        /* ═══════════════════════════════
+           LOADING PROGRESS
+        ════════════════════════════════ */
+        document.getElementById('auditForm').addEventListener('submit', function () {
+            const dataDiv = document.getElementById('dashboardData');
+            if(dataDiv) dataDiv.style.opacity = '.25';
+            document.getElementById('loadingState').style.display = 'flex';
+            
+            const fill = document.getElementById('progressFill');
+            const sub = document.getElementById('loadingStatus');
+            const steps = [
+                { ms: 0, w: '6%', t: 'Initiating connection…' },
+                { ms: 900, w: '22%', t: 'Authenticating with Google API…' },
+                { ms: 3200, w: '48%', t: 'Running Lighthouse analysis…' },
+                { ms: 8500, w: '70%', t: 'Extracting Core Web Vitals…' },
+                { ms: 14000, w: '86%', t: 'Processing field data…' },
+                { ms: 20000, w: '94%', t: 'Saving to database…' },
+            ];
+            steps.forEach(s => setTimeout(() => { fill.style.width = s.w; sub.textContent = s.t; }, s.ms));
+        });
 
         /* ═══════════════════════════════
            DATA POPULATION
