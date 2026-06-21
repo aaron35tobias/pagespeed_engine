@@ -1,5 +1,4 @@
 # High-Level Architecture
-
 The PageSpeed Track & Audit Engine is built on a modern, decoupled architecture designed to prevent bottlenecks and ensure a smooth user experience.
 
 ## The Flow

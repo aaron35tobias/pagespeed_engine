@@ -9,6 +9,7 @@ What is currently implemented in the codebase, and what was intentionally left o
 - **Historical Charting & UI**: Dynamic search filters, responsive Light/Dark mode, and interactive Chart.js line graphs.
 - **Debounced Alerting**: The logic to compare scores against thresholds and debounce via `AlertLog` is active.
 - **Production SMTP Configuration**: `settings.py` is configured to use environment variables (`EMAIL_HOST`, etc.) when `DEBUG=False`.
+- **Zero-Dependency Local Demo Mode**: We introduced `CELERY_TASK_ALWAYS_EAGER = True` for the local development environment to bypass the Redis broker. This allows a fully functional local demo on Windows machines without requiring a Dockerized Redis instance.
 
 ## What Is NOT There (And Why)
 

@@ -1,5 +1,4 @@
 # Database Schema & Models
-
 The engine relies on three essential tables. We opted for a normalized structure to ensure history is preserved efficiently over time.
 
 ## 1. Website (The Parent Record)

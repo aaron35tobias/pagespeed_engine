@@ -1,5 +1,4 @@
 # Core Logic Flow
-
 This document outlines how data moves through the application.
 
 ## 1. On-Demand Audit Flow

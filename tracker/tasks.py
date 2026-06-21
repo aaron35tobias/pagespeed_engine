@@ -18,8 +18,11 @@ def run_audit_task(website_id, strategy):
         'category': ['performance', 'accessibility', 'best-practices', 'seo']
     }
 
+    import time
+    time.sleep(5) # Prevent rate limiting 500 errors
+
     try:
-        response = requests.get(api_url, params=params, timeout=60)
+        response = requests.get(api_url, params=params, timeout=120)
         response.raise_for_status()
         data = response.json()
         

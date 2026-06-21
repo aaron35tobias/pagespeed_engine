@@ -35,8 +35,8 @@ def run_audit_view(request):
 
         selected_strategy = request.POST.get('strategy', 'desktop')
         
-        messages.success(request, f"Audit queued for {target_url} (Desktop & Mobile). It will appear in your history shortly.")
-        return redirect('/')
+        # Remove the 'Audit queued' message because tasks now run synchronously for local demo
+        return redirect(f"/?url={target_url}&strategy={selected_strategy}")
 
     # GET REQUEST: RENDER DASHBOARD & LATEST DATA
     context = {}
@@ -81,24 +81,32 @@ def run_audit_view(request):
     elif selected_url:
         try:
             website = Website.objects.get(url=selected_url)
-            # Pull the absolute newest successful report for this specific website AND strategy
-            latest_report = PageSpeedReport.objects.filter(
-                website=website, 
-                strategy=view_strategy,
-                status='success'
-            ).latest('fetched_at')
             
-            context['latest_report'] = latest_report
-            context['selected_website'] = website
-            context['current_strategy'] = view_strategy
-            # Pre-build ordered score list for the template ring loop
-            context['score_items'] = [
-                ('Performance', latest_report.performance_score),
-                ('Accessibility', latest_report.accessibility_score),
-                ('Best Practices', latest_report.best_practices_score),
-                ('SEO', latest_report.seo_score),
-            ]
-            
+            # Check for the absolute newest report for this website/strategy, regardless of success
+            try:
+                latest_run = PageSpeedReport.objects.filter(website=website, strategy=view_strategy).latest('fetched_at')
+                
+                if latest_run.status == 'success':
+                    context['latest_report'] = latest_run
+                    context['selected_website'] = website
+                    context['view_strategy'] = view_strategy
+                    # Pre-build ordered score list for the template ring loop
+                    context['score_items'] = [
+                        ('Performance', latest_run.performance_score),
+                        ('Accessibility', latest_run.accessibility_score),
+                        ('Best Practices', latest_run.best_practices_score),
+                        ('SEO', latest_run.seo_score),
+                    ]
+                else:
+                    context['error'] = f"The analysis for {view_strategy} failed. Please try again."
+                    context['selected_website'] = website
+                    context['view_strategy'] = view_strategy
+                    
+            except PageSpeedReport.DoesNotExist:
+                context['error'] = f"No {view_strategy} audits found for this URL yet."
+                context['selected_website'] = website
+                context['view_strategy'] = view_strategy
+
             # Pull historical reports for the table
             history = PageSpeedReport.objects.filter(
                 website=website, 
@@ -108,10 +116,6 @@ def run_audit_view(request):
             
         except Website.DoesNotExist:
             context['error'] = "Website not found in the database."
-        except PageSpeedReport.DoesNotExist:
-            context['error'] = f"No successful {view_strategy} audits found for this URL yet."
-            # Still pass the website so the frontend knows what was searched
-            context['selected_website'] = Website.objects.get(url=selected_url) 
 
     return render(request, 'dashboard.html', context)
 
