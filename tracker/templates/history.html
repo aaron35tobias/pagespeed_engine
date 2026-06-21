@@ -6,209 +6,1272 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History Explorer API Testing</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8f9fa;
-            color: #111827;
-            padding: 40px;
-            max-width: 1000px;
-            margin: 0 auto;
+
+        /* ═══════════════════════════════════════
+           DESIGN TOKENS
+        ═══════════════════════════════════════ */
+        :root {
+            --bg-base: #f8f9fa;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f3f4f6;
+            --bg-inset: #f0f1f3;
+            --border: #e5e7eb;
+            --border-subtle: #f0f1f3;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --accent: #2563eb;
+            --accent-subtle: #eff6ff;
+            --good: #16a34a;
+            --good-bg: #f0fdf4;
+            --ni: #d97706;
+            --ni-bg: #fffbeb;
+            --poor: #dc2626;
+            --poor-bg: #fef2f2;
+            --radius-sm: 3px;
+            --radius: 6px;
+            --radius-md: 8px;
         }
 
-        .header {
-            margin-bottom: 30px;
+        [data-theme="dark"] {
+            --bg-base: #0d1117;
+            --bg-surface: #161b22;
+            --bg-elevated: #21262d;
+            --bg-inset: #1c2128;
+            --border: #30363d;
+            --border-subtle: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent: #58a6ff;
+            --accent-subtle: #0d2044;
+            --good: #3fb950;
+            --good-bg: #0d2817;
+            --ni: #d29922;
+            --ni-bg: #271d07;
+            --poor: #f85149;
+            --poor-bg: #2d1316;
         }
 
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 8px;
+        /* ═══════════════════════════════════════
+           RESET & BASE
+        ═══════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        .header p {
-            color: #6b7280;
+        html {
             font-size: 14px;
         }
 
-        .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: end;
-        }
-
-        .input-group {
+        body {
+            font-family: 'Poppins', system-ui, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .input-group label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #4b5563;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .input-group input,
-        .input-group select {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .input-group input:focus,
-        .input-group select:focus {
-            border-color: #2563eb;
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
         button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
+            border: none;
+            background: none;
         }
 
-        button:hover {
-            background: #1d4ed8;
+        input,
+        select {
+            font-family: inherit;
         }
 
-        .btn-delete {
-            background: #ef4444;
-            padding: 4px 8px;
-            font-size: 12px;
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .btn-delete:hover {
-            background: #dc2626;
+        /* ═══════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════ */
+        .layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
         }
 
-        .chart-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 20px;
-            height: 260px;
+        main {
+            flex: 1;
+            padding: 28px 0 48px;
+        }
+
+        /* ═══════════════════════════════════════
+           HEADER
+        ═══════════════════════════════════════ */
+        .header {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            height: 52px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: background .15s, border-color .15s;
+        }
+
+        .theme-btn:hover {
+            background: var(--border);
+        }
+
+        .theme-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* show sun in dark mode (click to go light), moon in light mode (click to go dark) */
+        #iconSun {
             display: none;
+        }
+
+        #iconMoon {
+            display: block;
+        }
+
+        [data-theme="dark"] #iconSun {
+            display: block;
+        }
+
+        [data-theme="dark"] #iconMoon {
+            display: none;
+        }
+
+        /* ═══════════════════════════════════════
+           ALERTS
+        ═══════════════════════════════════════ */
+        .alert-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12.5px;
+            font-weight: 500;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: var(--good-bg);
+            color: var(--good);
+            border-color: var(--good);
+        }
+
+        .alert-error {
+            background: var(--poor-bg);
+            color: var(--poor);
+            border-color: var(--poor);
+        }
+
+        .alert-warning {
+            background: var(--ni-bg);
+            color: var(--ni);
+            border-color: var(--ni);
+        }
+
+        /* ═══════════════════════════════════════
+           CARD / SURFACE
+        ═══════════════════════════════════════ */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        .card-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .07em;
+            
+            color: var(--text-secondary);
+        }
+
+        .card-body {
+            padding: 18px;
+        }
+
+        /* ═══════════════════════════════════════
+           FORM
+        ═══════════════════════════════════════ */
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .05em;
+            
+            color: var(--text-secondary);
+            margin-bottom: 7px;
+        }
+
+        .input {
+            width: 100%;
+            height: 34px;
+            padding: 0 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+        }
+
+        .input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
+        }
+
+        .input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* Strategy toggle */
+        .strategy-wrap {
+            display: inline-flex;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+            gap: 2px;
+        }
+
+        .strategy-btn {
+            padding: 4px 14px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all .15s;
+            border: 1px solid transparent;
+        }
+
+        .strategy-btn.active {
+            background: var(--bg-surface);
+            color: var(--accent);
+            border-color: var(--border);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+        }
+
+        /* Search */
+        .search-wrap {
             position: relative;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
+        .search-icon {
+            position: absolute;
+            left: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        .search-icon svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .search-input {
+            padding-left: 30px;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+            z-index: 200;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .search-dropdown.open {
+            display: block;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background .1s;
+            cursor: pointer;
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-item:hover {
+            background: var(--bg-elevated);
+        }
+
+        .search-item-url {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text-primary);
+            max-width: 340px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .search-item-meta {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+        .search-item-score {
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .search-delete {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            transition: background .1s, color .1s;
+        }
+
+        .search-delete:hover {
+            background: var(--poor-bg);
+            color: var(--poor);
+        }
+
+        /* Analyze button */
+        .btn-primary {
+            height: 34px;
+            padding: 0 16px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: opacity .15s;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover {
+            opacity: .88;
+        }
+
+        /* Form top row: URL + Analyze (strategy moved below history) */
+        .form-top {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: flex-end;
+            margin-bottom: 14px;
+        }
+
+        /* Form bottom row: history search full-width */
+        .form-bottom {
+            padding-top: 14px;
+            border-top: 1px solid var(--border-subtle);
+            margin-bottom: 0;
+        }
+
+        /* Strategy centered row below history */
+        .form-strategy-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 12px;
+            gap: 8px;
+        }
+
+        /* Notable metrics two-column layout fix */
+        .notable-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
             overflow: hidden;
         }
 
-        th,
-        td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
+        .notable-item {
+            padding: 0 24px 4px 20px;
+            border-right: 1px solid var(--border-subtle);
+            min-width: 0;
+        }
+
+        .notable-item:last-child {
+            padding: 0 20px 4px 24px;
+            border-right: none;
+        }
+
+        .notable-thresh-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10.5px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .notable-thresh-inline {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        /* Score legend */
+        .score-legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 18px 14px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .legend-icon {
+            width: 11px;
+            height: 11px;
+            flex-shrink: 0;
+        }
+
+        /* Bar pin indicator — outer wrapper is the positioning context */
+        .bar-outer {
+            position: relative;
+            padding-top: 22px;
+            margin-bottom: 10px;
+        }
+
+        .bar-outer .cwv-bar-track {
+            margin-bottom: 0;
+        }
+
+        /* pin-wrap sits inside bar-outer, absolutely placed at the value % */
+        .bar-pin-wrap {
+            position: absolute;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 10;
+            height: 100%;
+        }
+
+        .pin-label {
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1;
+            white-space: nowrap;
+            padding-bottom: 3px;
+        }
+
+        .pin-stick {
+            width: 2px;
+            flex: 1;
+            border-radius: 1px;
+            background: var(--text-primary);
+            opacity: .75;
+        }
+
+        :root {
+            --pin-color: rgba(20, 20, 20, 0.8);
+        }
+
+        [data-theme="dark"] {
+            --pin-color: rgba(220, 220, 220, 0.85);
+        }
+
+        /* ═══════════════════════════════════════
+           LOADING
+        ═══════════════════════════════════════ */
+        #loadingState {
+            display: none;
+            padding: 56px 0;
+            text-align: center;
+        }
+
+        .spinner-ring {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-title {
             font-size: 14px;
-        }
-
-        th {
-            background: #f9fafb;
-            font-size: 12px;
             font-weight: 600;
-            color: #6b7280;
-            text-transform: uppercase;
+            color: var(--text-primary);
+            margin-bottom: 6px;
         }
 
-        .code-block {
-            background: #1f2937;
-            color: #e5e7eb;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 13px;
-            margin-top: 40px;
-            white-space: pre-wrap;
+        .loading-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
         }
+
+        .progress-track {
+            width: 280px;
+            height: 2px;
+            background: var(--border);
+            border-radius: 1px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 1px;
+            width: 0;
+            transition: width 1.2s linear;
+        }
+
+        /* ═══════════════════════════════════════
+           REPORT HEADER
+        ═══════════════════════════════════════ */
+        .report-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            gap: 16px;
+        }
+
+        .report-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .report-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            
+            color: var(--text-tertiary);
+        }
+
+        .report-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .report-url {
+            font-size: 12.5px;
+            color: var(--accent);
+            font-weight: 500;
+            margin-top: 1px;
+        }
+
+        .strategy-badge {
+            padding: 3px 9px;
+            border-radius: var(--radius-sm);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            
+        }
+
+        .strategy-badge.desktop {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .strategy-badge.mobile {
+            background: var(--good-bg);
+            color: var(--good);
+            border: 1px solid color-mix(in srgb, var(--good) 30%, transparent);
+        }
+
+        /* ═══════════════════════════════════════
+           SCORE RINGS
+        ═══════════════════════════════════════ */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            padding: 6px 0;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 12px;
+            border-right: 1px solid var(--border-subtle);
+            gap: 10px;
+        }
+
+        .score-item:last-child {
+            border-right: none;
+        }
+
+        .ring-wrap {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .ring-wrap svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg {
+            stroke: var(--border);
+        }
+
+        .ring-fill {
+            transition: stroke-dashoffset 1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .ring-number {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.03em;
+        }
+
+        .score-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: .01em;
+        }
+
+        .c-good {
+            stroke: #16a34a;
+        }
+
+        .c-ni {
+            stroke: #d97706;
+        }
+
+        .c-poor {
+            stroke: #dc2626;
+        }
+
+        .t-good {
+            color: var(--good);
+        }
+
+        .t-ni {
+            color: var(--ni);
+        }
+
+        .t-poor {
+            color: var(--poor);
+        }
+
+        /* ═══════════════════════════════════════
+           CORE WEB VITALS
+        ═══════════════════════════════════════ */
+        .cwv-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border-bottom: 1px solid var(--border-subtle);
+            margin-bottom: 20px;
+        }
+
+        .cwv-cell {
+            padding: 18px 20px;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .cwv-cell:last-child {
+            border-right: none;
+        }
+
+        .cwv-name-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 4px;
+        }
+
+        .cwv-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .dot-good {
+            background: var(--good);
+        }
+
+        .dot-ni {
+            background: var(--ni);
+        }
+
+        .dot-poor {
+            background: var(--poor);
+        }
+
+        .dot-na {
+            background: var(--text-tertiary);
+        }
+
+        .cwv-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .cwv-value {
+            font-size: 28px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.04em;
+            margin: 8px 0 10px;
+            line-height: 1;
+        }
+
+        .cwv-bar-track {
+            height: 6px;
+            display: flex;
+            border-radius: 3px;
+            overflow: hidden;
+            gap: 2px;
+            margin-bottom: 10px;
+        }
+
+        .cwv-seg {
+            border-radius: 2px;
+        }
+
+        .seg-good {
+            background: var(--good);
+        }
+
+        .seg-ni {
+            background: var(--ni);
+        }
+
+        .seg-poor {
+            background: var(--poor);
+            flex: 1;
+        }
+
+        .cwv-thresholds {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3px;
+            font-size: 11px;
+        }
+
+        .cwv-thresh-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+        }
+
+        .thresh-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .cwv-percentile {
+            font-size: 10.5px;
+            color: var(--text-tertiary);
+            margin-top: 8px;
+        }
+
+        /* Notable metrics below CWV */
+        .notable-wrap {
+            padding: 16px 0 0;
+        }
+
+        .notable-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            
+            color: var(--text-tertiary);
+            margin-bottom: 14px;
+        }
+
+        .notable-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .notable-name-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 4px;
+        }
+
+        .notable-value {
+            font-size: 22px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        /* ═══════════════════════════════════════
+           METRICS
+        ═══════════════════════════════════════ */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .metric-cell {
+            padding: 16px 18px;
+            border-right: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .metric-cell:nth-child(3n) {
+            border-right: none;
+        }
+
+        .metric-cell:nth-last-child(-n+3) {
+            border-bottom: none;
+        }
+
+        .metric-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .metric-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .metric-name {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-size: 19px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: -0.03em;
+        }
+
+        /* ═══════════════════════════════════════
+           CHART
+        ═══════════════════════════════════════ */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+        }
+
+        /* ═══════════════════════════════════════
+           TABLE
+        ═══════════════════════════════════════ */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 9px 14px;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            
+            color: var(--text-tertiary);
+            background: var(--bg-inset);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-elevated);
+        }
+
+        .data-table tr {
+            cursor: pointer;
+            transition: background .1s;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            
+        }
+
+        .status-success {
+            background: var(--good-bg);
+            color: var(--good);
+        }
+
+        .status-failed {
+            background: var(--poor-bg);
+            color: var(--poor);
+        }
+
+        .num-good {
+            color: var(--good);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .num-ni {
+            color: var(--ni);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .num-poor {
+            color: var(--poor);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid color-mix(in srgb, var(--poor) 35%, transparent);
+            color: var(--poor);
+            padding: 3px 9px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .1s, border-color .1s;
+        }
+
+        .delete-btn:hover {
+            background: var(--poor-bg);
+            border-color: var(--poor);
+        }
+
+        .num-muted {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ═══════════════════════════════════════
+           LAYOUT HELPERS
+        ═══════════════════════════════════════ */
+        .section-gap {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .row-3-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .form-top {
+                grid-template-columns: 1fr;
+            }
+
+            .score-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cwv-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cwv-cell {
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .row-3-1 {
+                grid-template-columns: 1fr;
+            }
+
+            .notable-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .notable-item,
+            .notable-item:last-child {
+                padding: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border-subtle);
+                padding-bottom: 16px;
+                margin-bottom: 16px;
+            }
+        }
+    
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <a href="/"
-            style="font-size: 12px; font-weight: 600; color: #2563eb; text-decoration: none; display: inline-block; margin-bottom: 10px;">←
-            Back to Dashboard</a>
-        <h1>History Search API Demo</h1>
-        <p>A testing playground for the API. This page is completely separate from the main dashboard.</p>
-    </div>
-
-    <!-- The Search Filters -->
-    <div class="controls">
-        <div class="input-group">
-            <label>URL / Domain</label>
-            <input type="text" id="q" placeholder="e.g. adidas.com">
+    <header class="header">
+        <div class="layout header-inner">
+            <div class="logo">PageSpeed Wisoft - History</div>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <a href="/" class="btn-primary" style="display:inline-flex; align-items:center; text-decoration:none;">Back to Dashboard</a>
+                <button class="theme-btn" id="themeToggle" title="Toggle theme">
+                    <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+            </div>
         </div>
-        <div class="input-group">
-            <label>Strategy</label>
-            <select id="strategy">
-                <option value="">All</option>
-                <option value="desktop">Desktop</option>
-                <option value="mobile">Mobile</option>
-            </select>
+    </header>
+
+    <main>
+        <div class="layout">
+            <div class="card" style="margin-bottom:20px;">
+                <div class="card-header"><span class="card-title">Search Filters</span></div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label class="form-label">Strategy</label>
+                            <select class="input" id="strategy">
+                                <option value="">All</option>
+                                <option value="desktop">Desktop</option>
+                                <option value="mobile">Mobile</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Start Date</label>
+                            <input class="input" type="date" id="start">
+                        </div>
+                        <div>
+                            <label class="form-label">End Date</label>
+                            <input class="input" type="date" id="end">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 16px; align-items: flex-end;">
+                        <div style="flex: 1;">
+                            <label class="form-label">URL / Domain</label>
+                            <input class="input" type="text" id="q" placeholder="e.g. adidas.com">
+                        </div>
+                        <div>
+                            <button onclick="fetchHistory()" class="btn-primary" style="height: 34px;">Search Reports</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Trend Graph -->
+            <div class="card" id="chartBox" style="margin-bottom:20px; display:none;">
+                <div class="card-header"><span class="card-title">Performance Trend</span></div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Results Table -->
+            <div class="card">
+                <div class="card-header"><span class="card-title">Results</span></div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>URL</th>
+                                <th>Strategy</th>
+                                <th>Perf</th>
+                                <th>Access</th>
+                                <th>Best Prac</th>
+                                <th>SEO</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTable">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-tertiary);">Click Search to load data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="input-group">
-            <label>Start Date</label>
-            <input type="date" id="start">
-        </div>
-        <div class="input-group">
-            <label>End Date</label>
-            <input type="date" id="end">
-        </div>
-        <button onclick="fetchHistory()">Search Reports</button>
-    </div>
-
-    <!-- Performance Trend Graph -->
-    <div class="chart-container" id="chartBox">
-        <canvas id="performanceChart"></canvas>
-    </div>
-
-    <!-- The Results Table -->
-    <table>
-        <thead>
-            <tr>
-                <th>Date & Time</th>
-                <th>URL</th>
-                <th>Strategy</th>
-                <th>Perf</th>
-                <th>Access</th>
-                <th>Best Prac</th>
-                <th>SEO</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="resultsTable">
-            <tr>
-                <td colspan="8" style="text-align: center; color: #9ca3af;">Click Search to load data</td>
-            </tr>
-        </tbody>
-    </table>
-
-
+    </main>
 
     <script>
+/* ═══════════════════════════════
+           THEME — system-aware, persisted
+        ════════════════════════════════ */
+        (function () {
+            const stored = localStorage.getItem('psw-theme');
+            const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', stored || sys);
+        })();
+
+        document.getElementById('themeToggle').addEventListener('click', function () {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('psw-theme', next);
+            
+        });
+
+        // Auto-search logic
+        document.getElementById('q').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                fetchHistory();
+            }
+        });
+        document.getElementById('strategy').addEventListener('change', fetchHistory);
+        document.getElementById('start').addEventListener('change', fetchHistory);
+        document.getElementById('end').addEventListener('change', fetchHistory);
+
         let historyChart = null;
 
         function renderChart(results) {
@@ -287,22 +1350,23 @@
                     renderChart(data.results || []);
 
                     if (!data.results || data.results.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #9ca3af;">No results found</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-tertiary);">No results found</td></tr>`;
                         return;
                     }
 
                     // Render rows
                     data.results.forEach(r => {
                         const tr = document.createElement('tr');
+                        let perfClass = r.performance >= 90 ? 'num-good' : (r.performance >= 50 ? 'num-ni' : 'num-poor');
                         tr.innerHTML = `
-                            <td style="color: #6b7280; font-size: 12px;">${r.fetched_at}</td>
-                            <td style="font-weight: 500;">${r.url}</td>
-                            <td style="text-transform: capitalize;">${r.strategy}</td>
-                            <td style="color: ${r.performance >= 90 ? '#16a34a' : (r.performance >= 50 ? '#d97706' : '#dc2626')}; font-weight: 600;">${r.performance}</td>
-                            <td>${r.accessibility || '—'}</td>
-                            <td>${r.best_practices || '—'}</td>
-                            <td>${r.seo || '—'}</td>
-                            <td><button class="btn-delete" onclick="deleteReport(${r.id})">Delete</button></td>
+                            <td style="font-size:12px; color:var(--text-secondary);">${r.fetched_at}</td>
+                            <td style="color:var(--accent); font-weight:500;">${r.url}</td>
+                            <td style="text-transform: capitalize; color:var(--text-secondary);">${r.strategy}</td>
+                            <td class="${perfClass}">${r.performance !== null ? r.performance : '—'}</td>
+                            <td class="num-muted">${r.accessibility || '—'}</td>
+                            <td class="num-muted">${r.best_practices || '—'}</td>
+                            <td class="num-muted">${r.seo || '—'}</td>
+                            <td style="text-align:right;"><button class="delete-btn" onclick="deleteReport(${r.id})">Delete</button></td>
                         `;
                         tbody.appendChild(tr);
                     });
