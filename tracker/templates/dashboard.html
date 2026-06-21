@@ -1233,16 +1233,6 @@
                 </form>
             </div>
 
-            <!-- LOADING -->
-            <div id="loadingState">
-                <div class="spinner-ring"></div>
-                <div class="loading-title">Running analysis</div>
-                <div class="loading-sub" id="loadingStatus">Initiating connection…</div>
-                <div class="progress-track">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-
             <!-- DASHBOARD DATA -->
             <div id="dashboardData" class="section-gap">
                 {% if latest_report %}
@@ -1683,32 +1673,13 @@
         })();
 
         /* ═══════════════════════════════
-           LOADING PROGRESS
-        ════════════════════════════════ */
-        document.getElementById('auditForm').addEventListener('submit', function () {
-            document.getElementById('loadingState').style.display = 'block';
-            document.getElementById('dashboardData').style.opacity = '.25';
-            const fill = document.getElementById('progressFill');
-            const sub = document.getElementById('loadingStatus');
-            const steps = [
-                { ms: 0, w: '6%', t: 'Initiating connection…' },
-                { ms: 900, w: '22%', t: 'Authenticating with Google API…' },
-                { ms: 3200, w: '48%', t: 'Running Lighthouse analysis…' },
-                { ms: 8500, w: '70%', t: 'Extracting Core Web Vitals…' },
-                { ms: 14000, w: '86%', t: 'Processing field data…' },
-                { ms: 20000, w: '94%', t: 'Saving to database…' },
-            ];
-            steps.forEach(s => setTimeout(() => { fill.style.width = s.w; sub.textContent = s.t; }, s.ms));
-        });
-
-        /* ═══════════════════════════════
            DATA POPULATION
         ════════════════════════════════ */
         {% if latest_report %}
         document.addEventListener('DOMContentLoaded', function () {
 
             // Initialize strategy buttons to match the currently loaded report
-            var _loadedStrategy = "{{ current_strategy|default:'desktop' }}";
+            var _loadedStrategy = "{{ view_strategy|default:'desktop' }}";
             document.getElementById('strategyInput').value = _loadedStrategy;
             document.getElementById('btnDesktop').className = 'strategy-btn' + (_loadedStrategy === 'desktop' ? ' active' : '');
             document.getElementById('btnMobile').className = 'strategy-btn' + (_loadedStrategy === 'mobile' ? ' active' : '');
@@ -1820,7 +1791,7 @@
 
             // ── Chart.js ──
             const wid = "{{ selected_website.id }}";
-            const strategy = "{{ current_strategy }}";
+            const strategy = "{{ view_strategy|default:'desktop' }}";
 
             function chartColors() {
                 const dark = document.documentElement.getAttribute('data-theme') === 'dark';

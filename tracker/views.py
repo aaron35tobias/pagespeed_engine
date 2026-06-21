@@ -36,7 +36,7 @@ def run_audit_view(request):
         selected_strategy = request.POST.get('strategy', 'desktop')
         
         messages.success(request, f"Audit queued for {target_url} (Desktop & Mobile). It will appear in your history shortly.")
-        return redirect(f"/?url={target_url}&strategy={selected_strategy}")
+        return redirect('/')
 
     # GET REQUEST: RENDER DASHBOARD & LATEST DATA
     context = {}
