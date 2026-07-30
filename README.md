@@ -13,7 +13,7 @@ Before you begin, ensure you have the following installed on your machine:
 
 **1. Clone the repository**
 ```bash
-git clone `https://github.com/prxcode/pagespeed_engine.git`
+git clone `https://github.com/aaron35tobias/pagespeed_engine.git`
 cd pagespeed_engine
 ```
 - Create Virtual Environment: `python -m venv .venv`
@@ -80,7 +80,7 @@ Use **Conventional Commits**, They make commit history cleaner and help with cha
 ```bash
 git push origin <feature>/<your-feature-name>
 ```
-Open: `https://github.com/prxcode/pagespeed_engine` and click "SEND PR"
+Open: `https://github.com/aaron35tobias/pagespeed_engine` and click "SEND PR"
 
 #### 4. Once you all are done with sending PR and your PR is merged by prxcode
 ```bash
@@ -138,7 +138,7 @@ git reset --hard #This deletes current changes
 git clean -fd #If you also want to remove untracked files (like new migration files)
 git pull origin main # Now you can overwrite
 ```
-#### 8. Review and Merge [ONLY FOR PRIYANSHU]
+#### 8. Review and Merge [ONLY FOR AARON]
 ```bash
 git checkout main
 git pull origin main
