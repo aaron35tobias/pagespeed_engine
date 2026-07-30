@@ -82,7 +82,7 @@ git push origin <feature>/<your-feature-name>
 ```
 Open: `https://github.com/aaron35tobias/pagespeed_engine` and click "SEND PR"
 
-#### 4. Once you all are done with sending PR and your PR is merged by prxcode
+#### 4. Once you all are done with sending PR and your PR is merged by aaron35tobias
 ```bash
 # 1. Go back to the main branch
 git checkout main
